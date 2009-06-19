@@ -2,15 +2,20 @@ require 'robot'
 
 class MyRobot < Rubots::Robot
 
-  def initialize()
-    forwardSpeed(10)
-    turningSpeed(1)
-  end
+ def initialize
+   name="Test Robot"
+ end
 
-  def run()
+#events
+    def aboutToStart
+      speed= 10, 1
+    end
 
-  end
+    def run
+    end
 
+    def gameFinished
+    end
 
 end
 

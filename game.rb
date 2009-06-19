@@ -28,8 +28,7 @@ module Rubots
   class Game
 
    def initialize
-     @robot1 = nil
-     @robot2 = nil
+     @robots = []
    end
 
    def init
@@ -57,45 +56,47 @@ module Rubots
     if @connection.connect != 0
       raise Playerc::playerc_error_str()
     end
-#    Robot.new(@connection, 1)
-#    @robot2 = Robot.new (@connection, 2) 
-
-   end
+  end
  
-   def load (file)
+  def load
      #read configuration 
      file = "session.yml"
      if not File.exists? file
        raise "The game sesssion file #{file} can not be found" 
      end
      session = YAML::load(File.open(file))
+     
+     robot_count = 0 
+     session['Robots'].each do |robot_file| 
 
-     robot1_file = session['robot1']
-     robot2_file = session['robot2']
+       if not File.exists? robot_file
+         raise "The robot file #{robot_file} can not be found"
+       end
 
-     if not File.exists? robot1_file
-       raise "The robot file #{robot1_file} can not be found"
-     end
-     File.open( robot1_file ) do |f|
-       f.grep( /class*<*Robot/ ) do |line|
-         puts ':', line
-         line.gsub(/ /,'') # strip all the whitespaces
-         robot1_class = line(5..line.index('<'))
-         puts robot1_class
+       total_bytes = 0
+       File.open( robot_file ) do |f|
+#TODO: count code size
+#       f.each_line {|l| total_bytes += line.size unless line =~ /^\s*($|#)/ }
+         f.grep( /class.*<.*Robot/ ) do |line|
+           line.gsub!(/ /,'') # strip all the whitespaces
+           robot_class = line.slice(5..line.index('<')-1)
+           require robot_file
+           @robots[robot_count] = eval(robot_class + ".new")
+           @robots[robot_count].init(@connection, robot_count +1 ) 
+         end
        end
      end
-     
 
-   end
+  end
 
-   def mainLoop
+  def mainLoop
      while (@running)
        #advance one step in simulation
        #check they didn't die under our feet
        [@pid_gazebo, @pid_player].each do |pid|
 #         puts pid
          begin 
-           Process::kill (0, pid)
+           Process::kill 0, pid
          rescue
            puts "Gazebo or Player died, exiting"
            @running = false
@@ -103,14 +104,14 @@ module Rubots
        end
       sleep(0.1) 
      end
-   end
+  end
 
-   def finish
-     @running = false 
-   end
+  def finish
+    @running = false 
+  end
 
-  private
-   def wait_initialize(pipe, stop_at, error_at)
+ private
+  def wait_initialize(pipe, stop_at, error_at)
     while line = pipe.gets
       puts line ; puts ""
       break if line.include? stop_at
@@ -118,12 +119,12 @@ module Rubots
     end
   end
 
-  end
+ end
 
 
 end
 
 game = Rubots::Game.new
-#game.init
+game.init
 game.load
 game.mainLoop
