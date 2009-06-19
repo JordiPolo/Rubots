@@ -1,0 +1,2 @@
+gazebo_world: pioneer2dx.world 
+player_config: player.cfg
