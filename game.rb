@@ -68,7 +68,7 @@ module Rubots
      
      robot_count = 0 
      session['Robots'].each do |robot_file| 
-
+     puts "loading robot " + robot_file
        if not File.exists? robot_file
          raise "The robot file #{robot_file} can not be found"
        end
@@ -90,20 +90,17 @@ module Rubots
   end
 
   def mainLoop
-     while (@running)
+    @robots.each { |r| r.aboutToStart }
+
+    while (@running)
        #advance one step in simulation
        #check they didn't die under our feet
-       [@pid_gazebo, @pid_player].each do |pid|
-#         puts pid
-         begin 
-           Process::kill 0, pid
-         rescue
-           puts "Gazebo or Player died, exiting"
-           @running = false
-         end
-       end
+      check_gazebo_player
+      @robots.each { |r| r.run }
       sleep(0.1) 
      end
+    
+    @robots.each { |r| r.finished }
   end
 
   def finish
@@ -113,10 +110,25 @@ module Rubots
  private
   def wait_initialize(pipe, stop_at, error_at)
     while line = pipe.gets
-      puts line ; puts ""
+#      puts line ; puts ""
       break if line.include? stop_at
       raise "Gazebo or player couldn't be initialized" if line.include? error_at
     end
+  end
+
+
+# currently not working as they are launched in a sh process that is always living
+  def check_gazebo_player
+      [@pid_gazebo, @pid_player].each do |pid|
+#         puts pid
+         begin 
+           Process::kill 0, pid
+         rescue
+           puts "Gazebo or Player died, exiting"
+           @running = false
+         end
+       end
+
   end
 
  end
