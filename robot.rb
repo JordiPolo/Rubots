@@ -3,6 +3,19 @@ require 'playerc'
 #require 'radar'
 
 module Rubots
+
+  class Rules
+    #limits as seen by the robot implementation
+    MAX_API_VELOCITY = 100
+    MAX_API_TURN_RATE = 100
+    #limits in the simulation
+    MAX_VELOCITY = 10
+    MAX_TURN_RATE = 1
+    INITIAL_ENERGY = 100
+    BULLET_ENERGY = 4
+    BULLETS = 100
+  end
+
   
   module Tools
     def toRad (degrees)
@@ -10,14 +23,14 @@ module Rubots
       rad
     end
 
-    def normalize (data, min, max, scale)
-      if data < min
-        data = min
+    def normalize (data, limit, real_limit)
+      if data < -limit
+        data = -limit
       end
-      if data > max
-        data = max
+      if data > limit
+        data = limit
       end
-      data = data / scale
+      data = data * (real_limit / limit)
       data
     end
   end
@@ -27,7 +40,7 @@ module Rubots
   class Gun
      #rotations, fire 
     def initialize
-      @bullets = 100
+      @bullets = Rules::BULLETS
     end
 
     def fire (number = 1)
@@ -61,7 +74,7 @@ module Rubots
       @name = "Unknown"
       @_ifaceIndex = 0
       @_ifacePosition = nil
-      @energy = 100 
+      @energy = Rules::INITIAL_ENERGY
     end
 
     def init (connection, interface_index)
@@ -104,12 +117,12 @@ module Rubots
     ##############################
  
     def forwardSpeed= (speed)
-       @forwardSpeed = normalize(speed, -100, 100, 10)  
+       @forwardSpeed = normalize(speed, Rules::MAX_API_VELOCITY, Rules::MAX_VELOCITY)  
        @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
     end
 
     def turningSpeed= (degrees)
-       @turningSpeed = normalize(degrees, -100, 100, 100)  
+       @turningSpeed = normalize(degrees, Rules::MAX_API_TURN_RATE, Rules::MAX_TURN_RATE)  
        @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
     end 
 
@@ -121,7 +134,7 @@ module Rubots
     def forward (meters)
       updatePosition
       if @forwardSpeed == 0 
-        forwardSpeed= 50
+        forwardSpeed= Rules::MAX_VELOCITY / 2
       end
       @_ifacePosition.set_cmd_pos(@position[:x] + meters, @position[:y], @position[:yaw], 1)
     end
@@ -129,7 +142,7 @@ module Rubots
     def turn (degrees)
       updatePosition
        if @turningSpeed == 0 
-         turningSpeed= 50
+         turningSpeed= Rules::MAX_TURN_RATE / 2
       end
       @_ifacePosition.set_cmd_pos(@position[:x], @position[:y], @position[:yaw] + toRad( degrees), 1)
     end
@@ -138,7 +151,7 @@ module Rubots
     def turnTo (degrees)
       updatePosition
        if @turningSpeed == 0 
-         turningSpeed= 50
+         turningSpeed= Rules::MAX_TURN_RATE / 2
       end
       @_ifacePosition.set_cmd_pos(@position[:x], @position[:y], toRad( degrees), 1)
     end
