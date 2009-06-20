@@ -90,17 +90,24 @@ module Rubots
   end
 
   def mainLoop
-    @robots.each { |r| r.aboutToStart }
+    @robots.each do  |r| 
+      Thread.new do 
+        r.aboutToStart 
+        while (@running) do
+          #check they are there
+          signal_gazebo_player
+          r.run 
+          sleep(0.1) 
+        end
+        r.finished  
+      end
+    end
+    while( @running) do
 
-    while (@running)
-       #advance one step in simulation
-       #check they didn't die under our feet
-      check_gazebo_player
-      @robots.each { |r| r.run }
-      sleep(0.1) 
-     end
-    
-    @robots.each { |r| r.finished }
+    sleep(0.1)
+    end
+    signal_gazebo_player 15
+   
   end
 
   def finish
@@ -114,15 +121,16 @@ module Rubots
       break if line.include? stop_at
       raise "Gazebo or player couldn't be initialized" if line.include? error_at
     end
+    puts line
   end
 
 
 # currently not working as they are launched in a sh process that is always living
-  def check_gazebo_player
+  def signal_gazebo_player (signal = 0)
       [@pid_gazebo, @pid_player].each do |pid|
 #         puts pid
          begin 
-           Process::kill 0, pid
+           Process::kill signal, pid
          rescue
            puts "Gazebo or Player died, exiting"
            @running = false

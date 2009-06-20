@@ -4,7 +4,7 @@ require 'playerc'
 
 module Rubots
   
-  module tools
+  module Tools
     def toRad (degrees)
       rad = degrees * Math::PI / 180.0
       rad
@@ -23,11 +23,23 @@ module Rubots
   end
 
 
+
   class Gun
      #rotations, fire 
+    def initialize
+      @bullets = 100
+    end
+
+    def fire (number = 1)
+      puts "fired #{number} bullets"
+      if @bullets < number 
+        number = @bullets
+      end
+      @bullets -= number
+    end
 
    private
-    include tools 
+    include Tools 
   end
 
 
@@ -39,7 +51,7 @@ module Rubots
   class Robot
     attr_reader :gun, :radar
     attr_reader :forwardSpeed, :turningSpeed
-    attr_accessor :name
+    attr_reader :name, :energy
 
     def initialize
       @gun = Gun.new
@@ -49,7 +61,7 @@ module Rubots
       @name = "Unknown"
       @_ifaceIndex = 0
       @_ifacePosition = nil
-      
+      @energy = 100 
     end
 
     def init (connection, interface_index)
@@ -71,6 +83,18 @@ module Rubots
     end
 
     def finished
+    end
+
+    def onHitByBullet
+    end
+
+    def onHitRobot
+    end
+    
+    def onHitObject
+    end
+
+    def onScannedRobot
     end
 
     ##############################
@@ -126,7 +150,7 @@ module Rubots
        Playerc::Playerc_client_read(@_connection) # this is needed?
        @position = {:x => @_ifacePosition.px, :y => @_ifacePosition.py, :yaw => @_ifacePosition.pa } 
     end
-    include tools
+    include Tools
 
   end 
 
