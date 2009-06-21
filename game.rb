@@ -67,7 +67,14 @@ module Rubots
      session = YAML::load(File.open(file))
      
      robot_count = 0 
-     session['Robots'].each do |robot_file| 
+     session['Robots'].each do |robot_file|
+       load_robot(robot_file) 
+     end
+
+  end
+
+
+  def load_robot(robot_file)
      puts "loading robot " + robot_file
        if not File.exists? robot_file
          raise "The robot file #{robot_file} can not be found"
@@ -85,8 +92,6 @@ module Rubots
            @robots[robot_count].init(@connection, robot_count +1 ) 
          end
        end
-     end
-
   end
 
   def mainLoop
@@ -143,7 +148,7 @@ module Rubots
 
 
 end
-
+  
 game = Rubots::Game.new
 game.init
 game.load

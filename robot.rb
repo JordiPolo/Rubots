@@ -6,14 +6,15 @@ module Rubots
 
   class Rules
     #limits as seen by the robot implementation
-    MAX_API_VELOCITY = 100
-    MAX_API_TURN_RATE = 100
+    MAX_API_VELOCITY = 100  # max movingspeed
+    MAX_API_TURN_RATE = 100 # max turning speed
     #limits in the simulation
-    MAX_VELOCITY = 10
-    MAX_TURN_RATE = 1
-    INITIAL_ENERGY = 100
-    BULLET_ENERGY = 4
-    BULLETS = 100
+    MAX_VELOCITY = 10  # max moving speed
+    MAX_TURN_RATE = 1  # max turning speed
+    LIFE = 100  # initial energy of robot
+    HIT_DAMAGE = 1 # energy lost if the robot hit something (or is hit)
+    BULLETS = 100  # amount of bullets per robot
+    BULLET_DAMAGE = 5 # damage caused by bullet hitting robot
   end
 
   
@@ -74,7 +75,7 @@ module Rubots
       @name = "Unknown"
       @_ifaceIndex = 0
       @_ifacePosition = nil
-      @energy = Rules::INITIAL_ENERGY
+      @energy = Rules::LIFE
     end
 
     def init (connection, interface_index)
