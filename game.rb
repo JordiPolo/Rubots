@@ -51,11 +51,16 @@ module Rubots
      wait_initialize(pipe_player, "success", "error")
      @pid_player = pipe_player.pid
      @running = true
+     puts "Gazebo and Player successfully launched"
+     sleep 1
 
     @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
     if @connection.connect != 0
       raise Playerc::playerc_error_str()
     end
+
+    Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; signal_gazebo_player 15 })
+
   end
  
   def load
@@ -66,7 +71,6 @@ module Rubots
      end
      session = YAML::load(File.open(file))
      
-     robot_count = 0 
      session['Robots'].each do |robot_file|
        load_robot(robot_file) 
      end
@@ -80,6 +84,7 @@ module Rubots
          raise "The robot file #{robot_file} can not be found"
        end
 
+       robot_count = 0
        total_bytes = 0
        File.open( robot_file ) do |f|
 #TODO: count code size
@@ -89,7 +94,9 @@ module Rubots
            robot_class = line.slice(5..line.index('<')-1)
            require robot_file
            @robots[robot_count] = eval(robot_class + ".new")
-           @robots[robot_count].init(@connection, robot_count +1 ) 
+           #TODO: check we really have a correct thing here
+           @robots[robot_count].init( @connection, robot_count *2 ) # 0, 2, 4
+           
          end
        end
   end

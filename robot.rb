@@ -12,9 +12,9 @@ module Rubots
     MAX_VELOCITY = 10  # max moving speed
     MAX_TURN_RATE = 1  # max turning speed
     LIFE = 100  # initial energy of robot
-    HIT_DAMAGE = 1 # energy lost if the robot hit something (or is hit)
+    HIT_DAMAGE = 1 # damage if the robot hit something (or is hit)
     BULLETS = 100  # amount of bullets per robot
-    BULLET_DAMAGE = 5 # damage caused by bullet hitting robot
+    BULLET_DAMAGE = 10 # damage caused by bullet hitting robot
   end
 
   
@@ -157,8 +157,11 @@ module Rubots
       @_ifacePosition.set_cmd_pos(@position[:x], @position[:y], toRad( degrees), 1)
     end
 
-       
- 
+    def worldPosition
+      updatePosition
+      return @position
+    end 
+
    private
     def updatePosition
        Playerc::Playerc_client_read(@_connection) # this is needed?
