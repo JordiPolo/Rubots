@@ -95,22 +95,27 @@ module Rubots
   end
 
   def mainLoop
+    threads = []
     @robots.each do  |r| 
-      Thread.new do 
-        r.aboutToStart 
-        while (@running) do
-          #check they are there
-          signal_gazebo_player
-          r.run 
-          sleep(0.1) 
-        end
-        r.finished  
+      r.aboutToStart  #run outside the thread so we wait to every robot's start
+    end
+    @robots.each do |r|
+      threads << Thread.new do 
+        r.run # robots can enter in busy loop here or setup and become event driven
       end
     end
-    while( @running) do
 
-    sleep(0.1)
+    while (@running) do
+      signal_gazebo_player
+      sleep(0.2) 
     end
+
+    threads.each { |aThread|  aThread.kill; aThread.join }
+
+    @robots.each do  |r| 
+      r.finished  #run outside the thread so we wait to every robot's start
+    end
+   
     signal_gazebo_player 15
    
   end
