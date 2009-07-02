@@ -19,20 +19,23 @@
 
 require 'playerc'
 require 'yaml'
+require 'Qt'
 
 require 'robot'
 require 'processMonitor'
 
 
 module Rubots
-  class Game
+  class Game < Qt::Object
 
    def initialize
+     super
      @robots = []
+     @threads = []
+     @running = false
    end
 
    def init
-
      #read configuration 
      config_file = "configuration.yml"
      if not File.exists? config_file
@@ -51,9 +54,8 @@ module Rubots
      @playerProcess = ProcessMonitor.new(player_cmd, "player", "success", "error")
      @playerProcess.run 
  
-    @running = true
      puts "Gazebo and Player successfully launched"
-     sleep 1 #TODO: Be sure we can delete this and delete it
+   #  sleep 1 #TODO: Be sure we can delete this and delete it
 
     @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
     if @connection.connect != 0
@@ -80,37 +82,45 @@ module Rubots
   end
 
   def mainLoop
-    threads = []
+
     @robots.each do  |r| 
       r.aboutToStart  #run outside the thread so we wait to every robot's start
     end
+
+    @running = true
+
     @robots.each do |r|
-      threads << Thread.new do 
+      @threads << Thread.new do 
         r.run # robots can enter in busy loop here or setup and become event driven
       end
     end
-
-    while (@running) do
-      @running = @gazeboProcess.running? and @playerProcess.running?
-      sleep(0.3) 
-    end
-
-    threads.each { |aThread|  aThread.kill; aThread.join }
-
-    @robots.each do  |r| 
-      r.finished  #run outside the thread so we wait to every robot's finish
-    end
-   
-    cleanup
-   
+    puts "running main loop"
+    @autoShootTimer = Qt::Timer.new( self )
+    connect( @autoShootTimer, SIGNAL('timeout()'),
+                          self, SLOT('update()') )
+    @autoShootTimer.start(500)
   end
 
+  #if we are running the update method will be called and eventually cleanup
+  #if we are not running we cleanup ourselves
   def finish
-    @running = false 
-  end
+    if @running
+      @running = false
+    else
+      cleanup
+    end
+  end  
 
 
  private
+
+  slots :update
+  def update
+      @running = @running and @gazeboProcess.running? and @playerProcess.running?
+      if !@running
+        cleanup 
+      end
+  end 
 
 
   def load_robot(robot_file)
@@ -139,9 +149,15 @@ module Rubots
 
   
   def cleanup
+    @threads.each { |aThread|  aThread.kill; aThread.join }
+
+    @robots.each do  |r| 
+      r.finished  #run outside the thread so we wait to every robot's finish
+    end
     @connection.disconnect
     @gazeboProcess.signal 15
     @playerProcess.signal 15
+    Qt::Application.instance.quit
   end
  
 
@@ -150,7 +166,30 @@ module Rubots
 
 end
   
-game = Rubots::Game.new
-game.init
-game.load
-game.mainLoop
+class GameControlWidget < Qt::Widget
+
+def initialize()
+    super
+    game = Rubots::Game.new
+    game.init
+    game.load
+    run = Qt::PushButton.new("Run!")
+    run.resize(100, 30)
+    run.connect(SIGNAL :clicked) { game.mainLoop }
+    quit = Qt::PushButton.new('Quit')
+    quit.setFont(Qt::Font.new('Times', 18, Qt::Font::Bold))
+    quit.connect(SIGNAL :clicked) { game.finish }
+    layout = Qt::VBoxLayout.new
+    layout.addWidget(run)
+    layout.addWidget(quit)
+    setLayout(layout)
+end
+
+end
+
+
+
+a = Qt::Application.new(ARGV)
+  main = GameControlWidget.new
+  main.show
+a.exec

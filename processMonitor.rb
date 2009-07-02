@@ -72,6 +72,7 @@ module Rubots
           pid = line.split[1]
         end
       end
+      ps.close
       return pid 
     end
 
@@ -79,6 +80,7 @@ module Rubots
       puts "Starting process"
       pipe = IO.popen(@startCmd, "r")
       wait_initialize( pipe, @success, @error )
+      pipe.close
 #      @pid_gazebo =pipe_gazebo.pid
 #      process = Process.fork { system("#{@restartCmd}") }
 #      Process.detach(process)

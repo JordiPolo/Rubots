@@ -172,7 +172,6 @@ module Rubots
 
    private
     def updatePosition
-       debugger
       # Playerc::Playerc_client_read(@_connection) # this is needed?
        @position = {:x => @_ifacePosition.px, :y => @_ifacePosition.py, :yaw => @_ifacePosition.pa } 
     end

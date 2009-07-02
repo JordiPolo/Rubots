@@ -10,7 +10,7 @@ class TestRobot < Rubots::Robot
     def aboutToStart
   #    speed= , 1
     end
-
+=begin
     def run
       puts "runnuunn"
       speed = 50, 5 
@@ -34,7 +34,7 @@ class TestRobot < Rubots::Robot
         raise "simulation failure"
       end 
     end
-
+=end
     def gameFinished
     end
 
