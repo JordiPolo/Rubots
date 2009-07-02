@@ -39,8 +39,8 @@ module Rubots
       if data > limit
         data = limit
       end
-      data = data * (real_limit / limit)
-      data
+      result = (data * real_limit) / limit
+      return result
     end
   end
 
@@ -125,7 +125,7 @@ module Rubots
     # Position commands return after the position is reached
     ##############################
  
-    def forwardSpeed= (speed)
+    def forwardSpeed=(speed)
        @forwardSpeed = normalize(speed, Rules::MAX_API_VELOCITY, Rules::MAX_VELOCITY)  
        @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
     end
@@ -136,14 +136,14 @@ module Rubots
     end 
 
     def speed= (speed, angle)
-      turningSpeed= angle
-      forwardSpeed= speed
+      self.turningSpeed = angle
+      self.forwardSpeed = speed
     end
 
     def forward (meters)
       updatePosition
       if @forwardSpeed == 0 
-        forwardSpeed= Rules::MAX_VELOCITY / 2
+        self.forwardSpeed = Rules::MAX_API_VELOCITY / 2
       end
       @_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
     end
@@ -151,7 +151,7 @@ module Rubots
     def turn (degrees)
       updatePosition
        if @turningSpeed == 0 
-         turningSpeed= Rules::MAX_TURN_RATE / 2
+         self.turningSpeed= Rules::MAX_API_TURN_RATE / 2
       end
       @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], @position[:yaw] + toRad( degrees), 1)
     end
@@ -160,7 +160,7 @@ module Rubots
     def turnTo (degrees)
       updatePosition
        if @turningSpeed == 0 
-         turningSpeed= Rules::MAX_TURN_RATE / 2
+         self.turningSpeed= Rules::MAX_API_TURN_RATE / 2
       end
       @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], toRad( degrees), 1)
     end
