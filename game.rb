@@ -119,7 +119,6 @@ module Rubots
          raise "The robot file #{robot_file} can not be found"
        end
 
-       
        robot_count = 0
        total_bytes = 0
        File.open( robot_file ) do |f|
@@ -129,10 +128,11 @@ module Rubots
            line.gsub!(/ /,'') # strip all the whitespaces
            robot_class = line.slice(5..line.index('<')-1)
            require robot_file
-           @robots[robot_count] = eval(robot_class + ".new")
+           robot = eval(robot_class + ".new")
            #TODO: check we really have a correct thing here
-           @robots[robot_count].init( @connection, robot_count *2 ) # 0, 2, 4
-           
+           robot.init( @connection, robot_count *2 ) # 0, 2, 4
+           @robots << robot
+           robot_count += 1
          end
        end
   end

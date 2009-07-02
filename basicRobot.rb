@@ -1,6 +1,6 @@
 require 'robot'
 
-class MyRobot < Rubots::Robot
+class TestRobot < Rubots::Robot
 
  def initialize
    name="Test Robot"
@@ -12,9 +12,13 @@ class MyRobot < Rubots::Robot
     end
 
     def run
-      speed= 50, 5 
+      puts "runnuunn"
+      speed = 50, 5 
+      puts "speed"
       position = worldPosition
       initial_position = position
+      puts "robot at initial position" + position
+
       forward 10
       position2 = worldPosition
       if (position == position2)
@@ -22,7 +26,7 @@ class MyRobot < Rubots::Robot
       end
       forward -10 
       position = worldPosition
-      puts initial_position + "    " + position +  "    "  + position2
+      puts "robot moved among " + initial_position + "    " + position +  "    "  + position2
       if (position == position2)
         raise "we are not moving"
       end

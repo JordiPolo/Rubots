@@ -1,4 +1,6 @@
 require 'playerc'
+require 'rubygems'
+require 'ruby-debug'
 #require 'gun'
 #require 'radar'
 
@@ -170,7 +172,8 @@ module Rubots
 
    private
     def updatePosition
-       Playerc::Playerc_client_read(@_connection) # this is needed?
+       debugger
+      # Playerc::Playerc_client_read(@_connection) # this is needed?
        @position = {:x => @_ifacePosition.px, :y => @_ifacePosition.py, :yaw => @_ifacePosition.pa } 
     end
     include Tools
