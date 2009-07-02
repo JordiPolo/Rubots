@@ -25,7 +25,6 @@ require 'processMonitor'
 
 
 module Rubots
-
   class Game
 
    def initialize
@@ -40,30 +39,32 @@ module Rubots
        raise "Configuration file #{config_file} can not be found" 
      end
      config = YAML::load(File.open(config_file))
+    
+     gazebo_cmd = "gazebo -r #{config['gazebo_world']} 2>&1"
+     player_cmd = "player #{config['player_config']} 2>&1"
 
-     
      # launch gazebo    
-     pipe_gazebo = IO.popen("gazebo -r #{config['gazebo_world']} 2>&1", "r")
-     wait_initialize(pipe_gazebo, "successfully", "Exception")
-     @pid_gazebo =pipe_gazebo.pid
+     @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
+     @gazeboProcess.run 
 
      # launch player
-     pipe_player = IO.popen("player #{config['player_config']} 2>&1", "r")
-     wait_initialize(pipe_player, "success", "error")
-     @pid_player = pipe_player.pid
-     @running = true
+     @playerProcess = ProcessMonitor.new(player_cmd, "player", "success", "error")
+     @playerProcess.run 
+ 
+    @running = true
      puts "Gazebo and Player successfully launched"
-     sleep 1
+     sleep 1 #TODO: Be sure we can delete this and delete it
 
     @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
     if @connection.connect != 0
       raise Playerc::playerc_error_str()
     end
 
-    Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; signal_gazebo_player 15 })
+    Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; cleanup })
 
   end
- 
+  
+
   def load
      #read configuration 
      file = "session.yml"
@@ -78,6 +79,39 @@ module Rubots
 
   end
 
+  def mainLoop
+    threads = []
+    @robots.each do  |r| 
+      r.aboutToStart  #run outside the thread so we wait to every robot's start
+    end
+    @robots.each do |r|
+      threads << Thread.new do 
+        r.run # robots can enter in busy loop here or setup and become event driven
+      end
+    end
+
+    while (@running) do
+      @running = @gazeboProcess.running? and @playerProcess.running?
+      sleep(0.3) 
+    end
+
+    threads.each { |aThread|  aThread.kill; aThread.join }
+
+    @robots.each do  |r| 
+      r.finished  #run outside the thread so we wait to every robot's finish
+    end
+   
+    cleanup
+   
+  end
+
+  def finish
+    @running = false 
+  end
+
+
+ private
+
 
   def load_robot(robot_file)
      puts "loading robot " + robot_file
@@ -85,6 +119,7 @@ module Rubots
          raise "The robot file #{robot_file} can not be found"
        end
 
+       
        robot_count = 0
        total_bytes = 0
        File.open( robot_file ) do |f|
@@ -102,60 +137,13 @@ module Rubots
        end
   end
 
-  def mainLoop
-    threads = []
-    @robots.each do  |r| 
-      r.aboutToStart  #run outside the thread so we wait to every robot's start
-    end
-    @robots.each do |r|
-      threads << Thread.new do 
-        r.run # robots can enter in busy loop here or setup and become event driven
-      end
-    end
-
-    while (@running) do
-      signal_gazebo_player
-      sleep(0.2) 
-    end
-
-    threads.each { |aThread|  aThread.kill; aThread.join }
-
-    @robots.each do  |r| 
-      r.finished  #run outside the thread so we wait to every robot's start
-    end
-   
-    signal_gazebo_player 15
-   
+  
+  def cleanup
+    @connection.disconnect
+    @gazeboProcess.signal 15
+    @playerProcess.signal 15
   end
-
-  def finish
-    @running = false 
-  end
-
- private
-  def wait_initialize(pipe, stop_at, error_at)
-    while line = pipe.gets
-#      puts line ; puts ""
-      break if line.include? stop_at
-      raise "Gazebo or player couldn't be initialized" if line.include? error_at
-    end
-    puts line
-  end
-
-
-# currently not working as they are launched in a sh process that is always living
-  def signal_gazebo_player (signal = 0)
-      [@pid_gazebo, @pid_player].each do |pid|
-#         puts pid
-         begin 
-           Process::kill signal, pid
-         rescue
-           puts "Gazebo or Player died, exiting"
-           @running = false
-         end
-       end
-
-  end
+ 
 
  end
 
