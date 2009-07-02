@@ -14,6 +14,7 @@ class MyRobot < Rubots::Robot
     def run
       speed= 50, 5 
       position = worldPosition
+      initial_position = position
       forward 10
       position2 = worldPosition
       if (position == position2)
@@ -21,10 +22,13 @@ class MyRobot < Rubots::Robot
       end
       forward -10 
       position = worldPosition
+      puts initial_position + "    " + position +  "    "  + position2
       if (position == position2)
         raise "we are not moving"
       end
-    
+      if initial_position != position
+        raise "simulation failure"
+      end 
     end
 
     def gameFinished

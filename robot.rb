@@ -5,16 +5,22 @@ require 'playerc'
 module Rubots
 
   class Rules
+    #general
     #limits as seen by the robot implementation
     MAX_API_VELOCITY = 100  # max movingspeed
     MAX_API_TURN_RATE = 100 # max turning speed
+
+    #robots
     #limits in the simulation
     MAX_VELOCITY = 10  # max moving speed
     MAX_TURN_RATE = 1  # max turning speed
     LIFE = 100  # initial energy of robot
+
+    #guns
     HIT_DAMAGE = 1 # damage if the robot hit something (or is hit)
     BULLETS = 100  # amount of bullets per robot
     BULLET_DAMAGE = 10 # damage caused by bullet hitting robot
+    MAX_GUN_TURN_RATE = 4
   end
 
   

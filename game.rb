@@ -21,6 +21,7 @@ require 'playerc'
 require 'yaml'
 
 require 'robot'
+require 'processMonitor'
 
 
 module Rubots
