@@ -82,7 +82,7 @@ module Rubots
   end
 
   def mainLoop
-
+    Thread.abort_on_exception = true
     @robots.each do  |r| 
       r.aboutToStart  #run outside the thread so we wait to every robot's start
     end
@@ -94,6 +94,7 @@ module Rubots
         r.run # robots can enter in busy loop here or setup and become event driven
       end
     end
+
     puts "running main loop"
     @autoShootTimer = Qt::Timer.new( self )
     connect( @autoShootTimer, SIGNAL('timeout()'),
@@ -164,11 +165,10 @@ module Rubots
  end
 
 
-end
   
 class GameControlWidget < Qt::Widget
 
-def initialize()
+  def initialize()
     super
     game = Rubots::Game.new
     game.init
@@ -183,13 +183,14 @@ def initialize()
     layout.addWidget(run)
     layout.addWidget(quit)
     setLayout(layout)
-end
+  end
 
 end
 
 
+end
 
 a = Qt::Application.new(ARGV)
-  main = GameControlWidget.new
+  main = Rubots::GameControlWidget.new
   main.show
 a.exec

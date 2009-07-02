@@ -8,16 +8,19 @@ class TestRobot < Rubots::Robot
 
 #events
     def aboutToStart
+      puts "testrobot about to start"
   #    speed= , 1
     end
-=begin
+
     def run
-      puts "runnuunn"
+      puts "testrobot running"
       speed = 50, 5 
       puts "speed"
       position = worldPosition
       initial_position = position
-      puts "robot at initial position" + position
+      puts "robot at initial position " 
+      puts position
+#      + position[:x].to_a + " " + position[:y] + " " + position[:yaw]
 
       forward 10
       position2 = worldPosition
@@ -26,7 +29,8 @@ class TestRobot < Rubots::Robot
       end
       forward -10 
       position = worldPosition
-      puts "robot moved among " + initial_position + "    " + position +  "    "  + position2
+      puts "robot moved among " 
+      puts  initial_position ,  position ,  position2
       if (position == position2)
         raise "we are not moving"
       end
@@ -34,7 +38,7 @@ class TestRobot < Rubots::Robot
         raise "simulation failure"
       end 
     end
-=end
+
     def gameFinished
     end
 

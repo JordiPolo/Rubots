@@ -145,7 +145,7 @@ module Rubots
       if @forwardSpeed == 0 
         forwardSpeed= Rules::MAX_VELOCITY / 2
       end
-      @_ifacePosition.set_cmd_pos(@position[:x] + meters, @position[:y], @position[:yaw], 1)
+      @_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
     end
 
     def turn (degrees)
@@ -153,7 +153,7 @@ module Rubots
        if @turningSpeed == 0 
          turningSpeed= Rules::MAX_TURN_RATE / 2
       end
-      @_ifacePosition.set_cmd_pos(@position[:x], @position[:y], @position[:yaw] + toRad( degrees), 1)
+      @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], @position[:yaw] + toRad( degrees), 1)
     end
  
     #absolute position
@@ -162,7 +162,7 @@ module Rubots
        if @turningSpeed == 0 
          turningSpeed= Rules::MAX_TURN_RATE / 2
       end
-      @_ifacePosition.set_cmd_pos(@position[:x], @position[:y], toRad( degrees), 1)
+      @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], toRad( degrees), 1)
     end
 
     def worldPosition
@@ -172,7 +172,7 @@ module Rubots
 
    private
     def updatePosition
-      # Playerc::Playerc_client_read(@_connection) # this is needed?
+       @_connection.read #this is needed?
        @position = {:x => @_ifacePosition.px, :y => @_ifacePosition.py, :yaw => @_ifacePosition.pa } 
     end
     include Tools
