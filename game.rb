@@ -140,6 +140,7 @@ module Rubots
            robot_class = line.slice(5..line.index('<')-1)
            require robot_file
            robot = eval(robot_class + ".new")
+          # robot.send(:super)
            #TODO: check we really have a correct thing here
            robot.init( @connection, robot_count *2 ) # 0, 2, 4
            @robots << robot

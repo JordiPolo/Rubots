@@ -15,9 +15,9 @@ class TestRobot < Rubots::Robot
 
     def run
       puts "testrobot running"
-      speed = 50, 5 
+#      speed = 50, 5 
       initial_position = worldPosition
-
+      stop
       forward 10
       sleep 5
       position2 = worldPosition
@@ -32,6 +32,7 @@ class TestRobot < Rubots::Robot
       if (position == position2)
         raise "we are not moving"
       end
+      stop
       if initial_position != position
         raise "simulation failure"
       end 

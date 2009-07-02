@@ -135,9 +135,13 @@ module Rubots
        @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
     end 
 
-    def speed= (speed, angle)
-      self.turningSpeed = angle
-      self.forwardSpeed = speed
+    def speed=(speed_angle)
+      self.turningSpeed = speed_angle[1]
+      self.forwardSpeed = speed_angle[0]
+    end
+
+    def stop 
+      self.speed = 0,0
     end
 
     def forward (meters)
@@ -145,6 +149,10 @@ module Rubots
       if @forwardSpeed == 0 
         self.forwardSpeed = Rules::MAX_API_VELOCITY / 2
       end
+      if (metes < 0) and (@forwardSpeed > 0) or 
+         (metes > 0) and (@forwardSpeed < 0)
+        @forwardSpeed = -@forwardSpeed
+      end 
       @_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
     end
 
