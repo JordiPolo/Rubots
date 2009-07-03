@@ -17,6 +17,7 @@ module Rubots
     MAX_VELOCITY = 10  # max moving speed
     MAX_TURN_RATE = 1  # max turning speed
     LIFE = 100  # initial energy of robot
+    ID_ROBOTS = 1..10 # ids allocated for robots
 
     #guns
     HIT_DAMAGE = 1 # damage if the robot hit something (or is hit)
@@ -68,10 +69,9 @@ module Rubots
     include Tools 
   end
 
-
+ #TODO: x, y  and distance are redundant, choose!
   class ScannedObject
-    attr_accessor :id, :type, :x, :y, :yaw
-    
+    attr_accessor :id, :type, :x, :y, :distance, :bearing, :info
   end
 
   require 'forwardable' 
@@ -115,13 +115,26 @@ module Rubots
 #      for i in 0..fiducial.fiducials_count do
          f = @_iface.fiducials
          puts "object found, id: #{f.id}, x: #{f.pose.px}, y: #{f.pose.py}, angle: #{f.pose.pyaw}"
-         
-         @robot.onScannedRobot 
+         object = ScannedObject.new
+         object.id = f.id  
+         object.x = f.pose.px
+         object.y = f.pose.py
+#         object.distance = 
+         object.bearing = f.pose.pyaw
+         if Rules::ID_ROBOTS.include? f.id
+ #TODO: get robot object from the fiducial id
+#         object.robot = RobotInfo.new ()
+          @robot.onScannedRobot object
+          object.type = "robot"
+         else
+           object.type = "object"
+           @robot.onScannedObject object
+         end 
+
 #        f = fiducial.fiducials[i]
 #        puts "id, x, y, range, bearing, orientation: ", f.id, f.pos[0], f.pos[1], f.range, f.bearing * 180 / PI, f.orient
 #      end
     end
-    fiducial.unsubscribe()
 
     end
   end
@@ -160,7 +173,7 @@ module Rubots
       @gun._cleanup
     end 
     ###################################
-    # Events to be implemented
+    # Events to be implemented by robots
     ###################################
     def aboutToStart
     end
@@ -179,8 +192,11 @@ module Rubots
     
     def onHitObject
     end
-
-    def onScannedRobot
+    #when a robot is scanned
+    def onScannedObject (object)
+    end
+    #when anything else is scanned
+    def onScannedRobot (robot)
     end
 
     ##############################
