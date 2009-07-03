@@ -51,6 +51,10 @@ module Rubots
     def initialize
       @bullets = Rules::BULLETS
     end
+    def _init (connection, interface_index)
+    end
+    def _cleanup
+    end
 
     def fire (number = 1)
       puts "fired #{number} bullets"
@@ -65,8 +69,61 @@ module Rubots
   end
 
 
-  class Radar
+  class ScannedObject
+    attr_accessor :id, :type, :x, :y, :yaw
     
+  end
+
+  require 'forwardable' 
+  #info about one robot available to external entities (other robots)
+  class RobotInfo 
+    extend Forwardable
+    def initialize (robot)
+      @r = robot 
+    end
+    
+    def_delegators :@r, :name, :energy, :forwardSpeed, :turningSpeed 
+  end 
+
+
+  class Radar
+
+    def initialize (robot)
+      @robot = robot
+    end
+
+    def _init (connection, interface_index)
+      @_connection = connection
+      @_iface = Playerc::Playerc_fiducial.new(@_connection, interface_index)
+      if @_iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+        raise  Playerc::playerc_error_str()
+      end
+    end
+
+    def _cleanup
+      @_iface.unsubscribe
+    end 
+
+    def scan
+      @_connection.read
+      #puts "fiducial device with #{@_iface.fiducials_count} readings"
+      
+      if @_iface.fiducials_count == 0
+        puts "no readings available in this interface"
+      else
+#TODO: more than one object found?
+#      for i in 0..fiducial.fiducials_count do
+         f = @_iface.fiducials
+         puts "object found, id: #{f.id}, x: #{f.pose.px}, y: #{f.pose.py}, angle: #{f.pose.pyaw}"
+         
+         @robot.onScannedRobot 
+#        f = fiducial.fiducials[i]
+#        puts "id, x, y, range, bearing, orientation: ", f.id, f.pos[0], f.pos[1], f.range, f.bearing * 180 / PI, f.orient
+#      end
+    end
+    fiducial.unsubscribe()
+
+    end
   end
 
 
@@ -77,26 +134,30 @@ module Rubots
 
     def initialize
       @gun = Gun.new
-      @radar = Radar.new
+      @radar = Radar.new self
       @forwardSpeed = 0
       @turningSpeed = 0
       @name = "Unknown"
-      @_ifaceIndex = 0
+#      @_ifaceIndex = 0
       @_ifacePosition = nil
       @energy = Rules::LIFE
     end
 
     def _init (connection, interface_index)
-      @_ifaceIndex = interface_index
+      ifaceIndex = interface_index
       @_connection = connection
-      @_ifacePosition = Playerc::Playerc_position2d.new(@_connection, @_ifaceIndex)
+      @_ifacePosition = Playerc::Playerc_position2d.new(@_connection, ifaceIndex)
       if @_ifacePosition.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
         raise  Playerc::playerc_error_str()
       end
+      @radar._init(connection, ifaceIndex)     
+      @gun._init(connection, ifaceIndex)
     end
     
     def _cleanup 
       @_ifacePosition.unsubscribe
+      @radar._cleanup
+      @gun._cleanup
     end 
     ###################################
     # Events to be implemented
@@ -107,7 +168,7 @@ module Rubots
     def run
     end
 
-    def finished
+    def onFinish
     end
 
     def onHitByBullet

@@ -3,6 +3,7 @@ require 'robot'
 class MyRobot < Rubots::Robot
 
  def initialize
+   super
    name="Test Robot"
  end
 
