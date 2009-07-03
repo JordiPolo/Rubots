@@ -29,7 +29,11 @@ module Rubots
     #TODO: use signal to know if the process are alive 
     def running?
       !pid.nil?
-     end
+    end
+
+    def kill 
+      self.signal 9
+    end 
 
     #TODO: launch even with other launched, need changes in the pid method
     def run 
@@ -56,7 +60,7 @@ module Rubots
   private
     def wait_initialize(pipe, stop_at, error_at)
       while line = pipe.gets
-#       puts line ; puts ""
+       puts line 
         break if line.include? stop_at
         raise "Gazebo or player couldn't be initialized" if line.include? error_at
       end
@@ -80,7 +84,7 @@ module Rubots
       puts "Starting process"
       pipe = IO.popen(@startCmd, "r")
       wait_initialize( pipe, @success, @error )
-      pipe.close
+     # pipe.close
 #      @pid_gazebo =pipe_gazebo.pid
 #      process = Process.fork { system("#{@restartCmd}") }
 #      Process.detach(process)

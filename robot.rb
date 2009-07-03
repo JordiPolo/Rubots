@@ -86,7 +86,7 @@ module Rubots
       @energy = Rules::LIFE
     end
 
-    def init (connection, interface_index)
+    def _init (connection, interface_index)
       @_ifaceIndex = interface_index
       @_connection = connection
       @_ifacePosition = Playerc::Playerc_position2d.new(@_connection, @_ifaceIndex)
@@ -94,7 +94,10 @@ module Rubots
         raise  Playerc::playerc_error_str()
       end
     end
-
+    
+    def _cleanup 
+      @_ifacePosition.unsubscribe
+    end 
     ###################################
     # Events to be implemented
     ###################################
@@ -124,34 +127,38 @@ module Rubots
     # Speed commands return inmediately
     # Position commands return after the position is reached
     ##############################
- 
-    def forwardSpeed=(speed)
+    #speed
+    def setForwardSpeed(speed)
+        puts "robot speed " + speed.to_s
        @forwardSpeed = normalize(speed, Rules::MAX_API_VELOCITY, Rules::MAX_VELOCITY)  
        @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
     end
 
-    def turningSpeed= (degrees)
+    def setTurningSpeed (degrees)
+       puts "robot turning " + degrees.to_s 
        @turningSpeed = normalize(degrees, Rules::MAX_API_TURN_RATE, Rules::MAX_TURN_RATE)  
        @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
     end 
 
-    def speed=(speed_angle)
-      self.turningSpeed = speed_angle[1]
-      self.forwardSpeed = speed_angle[0]
+    def setSpeed (speed, angle)
+      puts "set speed"
+      setTurningSpeed  angle
+      setForwardSpeed  speed
     end
 
     def stop 
-      self.speed = 0,0
+      setSpeed 0,0
     end
 
+    # movement
     def forward (meters)
       updatePosition
       if @forwardSpeed == 0 
-        self.forwardSpeed = Rules::MAX_API_VELOCITY / 2
+        setForwardSpeed Rules::MAX_API_VELOCITY
       end
-      if (metes < 0) and (@forwardSpeed > 0) or 
-         (metes > 0) and (@forwardSpeed < 0)
-        @forwardSpeed = -@forwardSpeed
+      if (meters < 0) and (@forwardSpeed > 0) or 
+         (meters > 0) and (@forwardSpeed < 0)
+         setForwardSpeed -@forwardSpeed
       end 
       @_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
     end
@@ -159,7 +166,7 @@ module Rubots
     def turn (degrees)
       updatePosition
        if @turningSpeed == 0 
-         self.turningSpeed= Rules::MAX_API_TURN_RATE / 2
+         setTurningSpeed Rules::MAX_API_TURN_RATE 
       end
       @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], @position[:yaw] + toRad( degrees), 1)
     end
@@ -168,10 +175,11 @@ module Rubots
     def turnTo (degrees)
       updatePosition
        if @turningSpeed == 0 
-         self.turningSpeed= Rules::MAX_API_TURN_RATE / 2
+         setTurningSpeed Rules::MAX_API_TURN_RATE 
       end
       @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], toRad( degrees), 1)
     end
+
 
     def worldPosition
       updatePosition

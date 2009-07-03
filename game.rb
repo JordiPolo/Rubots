@@ -45,22 +45,27 @@ module Rubots
     
      gazebo_cmd = "gazebo -r #{config['gazebo_world']} 2>&1"
      player_cmd = "player #{config['player_config']} 2>&1"
-
+    
+     puts gazebo_cmd, player_cmd
      # launch gazebo    
-     @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
+     @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo -r", "successfully", "Exception")
      @gazeboProcess.run 
 
      # launch player
-     @playerProcess = ProcessMonitor.new(player_cmd, "player", "success", "error")
+     @playerProcess = ProcessMonitor.new(player_cmd, "player ", "success", "error")
      @playerProcess.run 
- 
-     puts "Gazebo and Player successfully launched"
-   #  sleep 1 #TODO: Be sure we can delete this and delete it
+     
+     puts "Gazebo and Player launched"
 
-    @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
-    if @connection.connect != 0
-      raise Playerc::playerc_error_str()
-    end
+     sleep 3 #TODO: Be sure we can delete this and delete it
+     if !@playerProcess.running?
+       raise "player died"
+     end
+   
+     @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
+     if @connection.connect != 0
+       raise Playerc::playerc_error_str()
+     end
 
     Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; cleanup })
 
@@ -96,10 +101,10 @@ module Rubots
     end
 
     puts "running main loop"
-    @autoShootTimer = Qt::Timer.new( self )
-    connect( @autoShootTimer, SIGNAL('timeout()'),
+    @updateTimer = Qt::Timer.new( self )
+    connect( @updateTimer, SIGNAL('timeout()'),
                           self, SLOT('update()') )
-    @autoShootTimer.start(500)
+    @updateTimer.start(500)
   end
 
   #if we are running the update method will be called and eventually cleanup
@@ -119,6 +124,9 @@ module Rubots
   def update
       @running = @running and @gazeboProcess.running? and @playerProcess.running?
       if !@running
+        @updateTimer.stop
+        @threads.each { |aThread|  aThread.kill; aThread.join }
+        @robots.each { |r|  r.onFinish }   # let the robots to finish themselves
         cleanup 
       end
   end 
@@ -142,7 +150,7 @@ module Rubots
            robot = eval(robot_class + ".new")
           # robot.send(:super)
            #TODO: check we really have a correct thing here
-           robot.init( @connection, robot_count *2 ) # 0, 2, 4
+           robot._init( @connection, robot_count *2 ) # 0, 2, 4
            @robots << robot
            robot_count += 1
          end
@@ -151,14 +159,13 @@ module Rubots
 
   
   def cleanup
-    @threads.each { |aThread|  aThread.kill; aThread.join }
-
     @robots.each do  |r| 
-      r.finished  #run outside the thread so we wait to every robot's finish
+      r._cleanup  #game internal cleanup of robots
     end
+
     @connection.disconnect
-    @gazeboProcess.signal 15
-    @playerProcess.signal 15
+    @gazeboProcess.kill 
+    @playerProcess.kill
     Qt::Application.instance.quit
   end
  

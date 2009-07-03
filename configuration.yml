@@ -1,2 +1,2 @@
 gazebo_world: pioneer2dx.world 
-player_config: player.cfg
+player_config: pioneer2dx.cfg
