@@ -1,30 +1,31 @@
+=begin
+  Rubots
+     Copyright(c) 2009  Jordi Polo
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+=end
+
 require 'playerc'
 require 'rubygems'
 require 'ruby-debug'
+require 'radar'
+require 'rules'
 #require 'gun'
-#require 'radar'
+
 
 module Rubots
-
-  class Rules
-    #general
-    #limits as seen by the robot implementation
-    MAX_API_VELOCITY = 100  # max movingspeed
-    MAX_API_TURN_RATE = 100 # max turning speed
-
-    #robots
-    #limits in the simulation
-    MAX_VELOCITY = 10  # max moving speed
-    MAX_TURN_RATE = 1  # max turning speed
-    LIFE = 100  # initial energy of robot
-    ID_ROBOTS = 1..10 # ids allocated for robots
-
-    #guns
-    HIT_DAMAGE = 1 # damage if the robot hit something (or is hit)
-    BULLETS = 100  # amount of bullets per robot
-    BULLET_DAMAGE = 10 # damage caused by bullet hitting robot
-    MAX_GUN_TURN_RATE = 4
-  end
 
   
   module Tools
@@ -69,73 +70,7 @@ module Rubots
     include Tools 
   end
 
- #TODO: x, y  and distance are redundant, choose!
-  class ScannedObject
-    attr_accessor :id, :type, :x, :y, :distance, :bearing, :info
-  end
 
-  require 'forwardable' 
-  #info about one robot available to external entities (other robots)
-  class RobotInfo 
-    extend Forwardable
-    def initialize (robot)
-      @r = robot 
-    end
-    def_delegators :@r, :name, :energy, :forwardSpeed, :turningSpeed 
-  end 
-
-
-  class Radar
-
-    def initialize (robot)
-      @robot = robot
-    end
-
-    def _init (connection, interface_index)
-      @_connection = connection
-      @_iface = Playerc::Playerc_fiducial.new(@_connection, interface_index)
-      if @_iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
-        raise  Playerc::playerc_error_str()
-      end
-    end
-
-    def _cleanup
-      @_iface.unsubscribe
-    end 
-
-    def scan
-      @_connection.read
-      #puts "fiducial device with #{@_iface.fiducials_count} readings"
-      
-      if @_iface.fiducials_count == 0
-        puts "no readings available in this interface"
-      else
-#TODO: more than one object found?
-#      for i in 0..fiducial.fiducials_count do
-         f = @_iface.fiducials
-         puts "object found, id: #{f.id}, x: #{f.pose.px}, y: #{f.pose.py}, angle: #{f.pose.pyaw}"
-         object = ScannedObject.new
-         object.id = f.id  
-         object.x = f.pose.px
-         object.y = f.pose.py
-#         object.distance = 
-         object.bearing = f.pose.pyaw
-         if Rules::ID_ROBOTS.include? f.id
-          object.info = RobotInfo.new ($engine.robot_from_fiducial(f.id))
-          object.type = "robot"
-          @robot.onScannedRobot object
-         else
-           object.type = "object"
-           @robot.onScannedObject object
-         end 
-
-#        f = fiducial.fiducials[i]
-#        puts "id, x, y, range, bearing, orientation: ", f.id, f.pos[0], f.pos[1], f.range, f.bearing * 180 / PI, f.orient
-#      end
-    end
-
-    end
-  end
 
 
   class Robot
@@ -145,7 +80,7 @@ module Rubots
 
     def initialize
       @gun = Gun.new
-      @radar = Radar.new self
+      @radar = Radar.new
       @forwardSpeed = 0
       @turningSpeed = 0
       @name = "Unknown"
@@ -164,6 +99,7 @@ module Rubots
       @radar._init(connection, ifaceIndex)     
       @gun._init(connection, ifaceIndex)
       @fiducialId = ifaceIndex #BIG assumption
+      @radar.add_observer(self) #interested in radar events
     end
     
     def _cleanup 
@@ -199,6 +135,12 @@ module Rubots
     def onScannedRobot (robot)
     end
 
+    #translate observed events to method name and execute them
+    def update (event, object)
+      event[0].capitalize! 
+      method_name = "on" + event
+      eval (method_name + " object")        
+    end
     ##############################
     # Movement
     # Speed commands return inmediately

@@ -140,6 +140,7 @@ module Rubots
   slots :update
   def update
       @running = @running and @gazeboProcess.running? and @playerProcess.running?
+      @connection.read 
       if !@running
         @updateTimer.stop
         @threads.each { |aThread|  aThread.kill; aThread.join }
