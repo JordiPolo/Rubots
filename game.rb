@@ -57,7 +57,7 @@ module Rubots
      
      puts "Gazebo and Player launched"
 
-     sleep 3 #TODO: Be sure we can delete this and delete it
+     sleep 1 #TODO: Be sure we can delete this and delete it
      if !@playerProcess.running?
        raise "player died"
      end
@@ -67,7 +67,16 @@ module Rubots
        raise Playerc::playerc_error_str()
      end
 
-    Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; cleanup })
+# using the sim interface makes player queue errors to appear
+#     @simIface = Playerc::Playerc_simulation.new( @connection, 0)
+#     @simIface.get_property("")
+#     puts @simIface.public_methods(false).sort
+#     if @simIface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+#       raise  Playerc::playerc_error_str()
+#     end
+
+
+     Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; cleanup })
 
   end
   
@@ -79,9 +88,15 @@ module Rubots
        raise "The game sesssion file #{file} can not be found" 
      end
      session = YAML::load(File.open(file))
-     
-     session['Robots'].each do |robot_file|
-       load_robot(robot_file) 
+      
+      #WARNING: we assume here an order in the files. 
+      #We assume that the config, the world and the session file has the same order
+      #and based on the same numbers
+     # robot_count = 0
+     session['Robots'].each_with_index do |robot_file, robot_count|
+       robot = load_robot(robot_file) 
+       robot._init( @connection, robot_count *2 ) # 0, 2, 4
+      # robot_count += 1 
      end
 
   end
@@ -117,8 +132,10 @@ module Rubots
     end
   end  
 
+  def robot_from_fiducial (fiducial)
+    @robots.find {|r| r.fiducialId == fiducial}
+  end 
 
- private
 
   slots :update
   def update
@@ -137,7 +154,7 @@ module Rubots
        if not File.exists? robot_file
          raise "The robot file #{robot_file} can not be found"
        end
-
+       robot = nil
        robot_count = 0
        total_bytes = 0
        File.open( robot_file ) do |f|
@@ -148,13 +165,17 @@ module Rubots
            robot_class = line.slice(5..line.index('<')-1)
            require robot_file
            robot = eval(robot_class + ".new")
+           if robot.nil?
+             raise "No robot could be created from the file"
+           end
           # robot.send(:super)
            #TODO: check we really have a correct thing here
-           robot._init( @connection, robot_count *2 ) # 0, 2, 4
+   #        robot._init( @connection, robot_count *2 ) # 0, 2, 4
            @robots << robot
            robot_count += 1
          end
        end
+       return robot
   end
 
   
@@ -179,6 +200,7 @@ class GameControlWidget < Qt::Widget
   def initialize()
     super
     game = Rubots::Game.new
+    $engine = game
     game.init
     game.load
     run = Qt::PushButton.new("Run!")

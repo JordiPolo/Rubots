@@ -81,7 +81,6 @@ module Rubots
     def initialize (robot)
       @r = robot 
     end
-    
     def_delegators :@r, :name, :energy, :forwardSpeed, :turningSpeed 
   end 
 
@@ -122,10 +121,9 @@ module Rubots
 #         object.distance = 
          object.bearing = f.pose.pyaw
          if Rules::ID_ROBOTS.include? f.id
- #TODO: get robot object from the fiducial id
-#         object.robot = RobotInfo.new ()
-          @robot.onScannedRobot object
+          object.info = RobotInfo.new ($engine.robot_from_fiducial(f.id))
           object.type = "robot"
+          @robot.onScannedRobot object
          else
            object.type = "object"
            @robot.onScannedObject object
@@ -143,7 +141,7 @@ module Rubots
   class Robot
     attr_reader :gun, :radar
     attr_reader :forwardSpeed, :turningSpeed
-    attr_reader :name, :energy
+    attr_reader :name, :energy, :fiducialId
 
     def initialize
       @gun = Gun.new
@@ -165,6 +163,7 @@ module Rubots
       end
       @radar._init(connection, ifaceIndex)     
       @gun._init(connection, ifaceIndex)
+      @fiducialId = ifaceIndex #BIG assumption
     end
     
     def _cleanup 
@@ -179,6 +178,7 @@ module Rubots
     end
 
     def run
+      @radar.scan()
     end
 
     def onFinish
