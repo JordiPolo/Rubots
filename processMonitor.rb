@@ -32,7 +32,9 @@ module Rubots
     end
 
     def kill 
-      self.signal 9
+      if !signal 9
+        puts @processString + " couldn't be killed"
+      end
     end 
 
     #TODO: launch even with other launched, need changes in the pid method
@@ -48,9 +50,9 @@ module Rubots
       end
      end
 
-    def signal(signal)
+    def signal(signal_num)
       begin
-        Process::kill signal, @pid
+        Process::kill signal_num, @pid.to_i
       rescue
         return false
       end

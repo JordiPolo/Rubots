@@ -43,12 +43,12 @@ module Rubots
      end
      config = YAML::load(File.open(config_file))
     
-     gazebo_cmd = "gazebo -r #{config['gazebo_world']} 2>&1"
+     gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
      player_cmd = "player #{config['player_config']} 2>&1"
     
      puts gazebo_cmd, player_cmd
      # launch gazebo    
-     @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo -r", "successfully", "Exception")
+     @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
      @gazeboProcess.run 
 
      # launch player
@@ -57,14 +57,26 @@ module Rubots
      
      puts "Gazebo and Player launched"
 
-     sleep 1 #TODO: Be sure we can delete this and delete it
      if !@playerProcess.running?
        raise "player died"
      end
    
      @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
-     if @connection.connect != 0
-       raise Playerc::playerc_error_str()
+     
+     retries = 10
+     connected = false
+     while (!connected) and (retries > 0)
+       sleep 1
+       if @connection.connect == 0
+         connected = true 
+       end
+     end
+     
+     if !connected
+       error = Playerc::playerc_error_str()
+       @gazeboProcess.kill 
+       @playerProcess.kill
+       raise error
      end
 
 # using the sim interface makes player queue errors to appear
