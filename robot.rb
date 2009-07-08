@@ -99,7 +99,7 @@ module Rubots
       @radar._init(connection, ifaceIndex)     
       @gun._init(connection, ifaceIndex)
       @fiducialId = ifaceIndex #BIG assumption
-      @radar.add_observer(self) #interested in radar events
+      @radar.add_observer self  #interested in radar events
     end
     
     def _cleanup 
@@ -114,7 +114,7 @@ module Rubots
     end
 
     def run
-      @radar.scan()
+   #   @radar.scan()
     end
 
     def onFinish
@@ -128,11 +128,14 @@ module Rubots
     
     def onHitObject
     end
+
     #when a robot is scanned
     def onScannedObject (object)
+      puts "object found"
     end
     #when anything else is scanned
     def onScannedRobot (robot)
+      puts "robot found"
     end
 
     #translate observed events to method name and execute them

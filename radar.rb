@@ -38,7 +38,7 @@ module Rubots
 
 
   class Radar
-
+    include Observable
     def initialize 
    
     end
