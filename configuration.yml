@@ -1,4 +1,4 @@
 gazebo_world: pioneer2dx.world 
 Robots:
-- basicRobot.rb
-- basicRobot2.rb
+- pioneer2dx_model1
+- pioneer2dx_model2

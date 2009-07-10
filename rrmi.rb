@@ -7,10 +7,17 @@ require 'processMonitor'
 module RRMi
 
   class Command2D
+
     include Comparable
+
     attr_accessor :x, :y, :yaw
-    def initialize (x, y, yaw)
-      @x, @y, @yaw = x, y, yaw
+
+    def initialize (*args)
+      if (args.size == 1)
+        @x, @y, @yaw = args[0].x, args[0].y, args[0].yaw
+      elsif (args.size == 3)
+        @x, @y, @yaw = args[0], args[1], args[2]
+      end
     end
     def <=>(second)
       if @x < second.x and @y < second.y and @yaw < second.yaw
@@ -35,9 +42,13 @@ module RRMi
 
 
   class Connection
-    def startUnderlyingSoftware(config)
-
-      gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
+    def startUnderlyingSoftware(config, batch_mode=false)
+      
+      if batch_mode #we dont want to display graphical interface
+        gazebo_cmd = "gazebo -r #{config['gazebo_world']} 2>&1"
+      else
+        gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
+      end
     
        # launch gazebo    
        @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
@@ -45,7 +56,7 @@ module RRMi
 
        puts "Gazebo launched"
 
-       if !@gazeborProcess.running?
+       if !@gazeboProcess.running?
          raise "gazebo died"
        end
    
@@ -76,22 +87,22 @@ module RRMi
 
   end
 
+
+
   class Model
-    
+    attr_reader :name
     def initialize (client, name)
       @client = client
       @name = name
-    
     end
 
     def positionIface (name)
       iface_name = @name + "::" + name 
       iface = PositionIface.new @client, iface_name
-         
     end
-   
 
   end
+
   
 
 
@@ -100,27 +111,25 @@ module RRMi
       @client = client
       @name = fullname
       @iface = Gazeboc::PositionIface.new
-      @default_vel = Command2D.new( 10,10.1 ) #random numbers, just to make it move if the user provide no defaults
+      @default_vel = Command2D.new( 10,10,1 ) #random numbers, just to make it move if the user provide no defaults
     end
 
     def open
-      @iface.Open @client, @name
+      @iface.Open  @client, @name
     end
 
     def cleanup
       @iface.Close
     end
  
-    def setRelativePosition (x, y, yaw)
-      setRelativePosition( Command2D.new( x,y,yaw ) )
-    end
-    def setRelativePosition ( pos )
+    def setRelativePosition ( *args )
       #player
       #@_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
       #check the motors
+      pos = Command2D.new *args
       stop # basically dont control with vel and pos, choose!
       target_pos = getPosition + pos     
-      vel = alingVelPos (@default_vel, pos)
+      vel = alingVelPos( @default_vel, pos )
       setVelocity (vel)
 
       while (target_pos < getPosition)
@@ -130,32 +139,30 @@ module RRMi
       stop
     end
 
-    def setDefaultVelocity ( x, y, yaw)
-      setDefaultVelocity( Command2D.new( x,y,yaw ) )
-    end
-    def setDefaultVelocity ( vel )
+    def setDefaultVelocity ( *args )
+      vel = Command2D.new *args
       @default_vel = vel
     end
 
-    def setVelocity ( x, y, yaw)
-      setVelocity( Command2D.new( x,y,yaw ) )
-    end
-    def setVelocity (vel)
+
+    def setVelocity (*args)
       #player
       #@iface.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
+      vel = Command2D.new *args
       with_lock do
         @iface.data.cmdVelocity.pos.x = vel.x
         @iface.data.cmdVelocity.pos.y = vel.y
-        @iface.data.cmdVelocity.pos.yaw = vel.yaw #TODO:this is rad or degrees?
+        @iface.data.cmdVelocity.yaw = vel.yaw #TODO:this is rad or degrees?
       end
       
     end
     
     #TODO: this is a global position?
     def getPosition
+      my_pos = Command2D.new( 0, 0, 0 )
       with_lock do
-        pos = @iface.data.pose.pos
-        my_pos = Command2D.new(pos.x, pos.y, pos.yaw)
+        pose = @iface.data.pose
+        my_pos = Command2D.new(pose.pos.x, pose.pos.y, pose.yaw)
       end 
       return my_pos
     end

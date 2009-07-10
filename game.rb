@@ -30,20 +30,6 @@ require 'rrmi'
 
 module Rubots
 
-  class RobotConnection 
-    def initialize (model, interface)
-      @model = model
-      @interface_index = interface
-    end
-    #def method_missing
-    #end
-    def positionIface
-      name = "position_" + @interface_index.to_s
-      @model.positionIface name
-    end
-  end
-
-
   class Game < Qt::Object
 
    def initialize
@@ -61,26 +47,28 @@ module Rubots
      if not File.exists? config_file
        raise "Configuration file #{config_file} can not be found" 
      end
+     if not File.exists? session_file
+       raise "The game sesssion file #{session_file} can not be found" 
+     end
+
      config = YAML::load(File.open(config_file))
+     session = YAML::load(File.open(session_file))
      
      @conn = RRMi::Connection.new
-     @conn.startUnderlyingSoftware config
+     @conn.startUnderlyingSoftware( config, true )
 
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing Gazebo"; cleanup })
 
-     if not File.exists? file
-       raise "The game sesssion file #{session_file} can not be found" 
-     end
-     session = YAML::load(File.open(session_file))
       
-      #WARNING: we assume here an order in the files. 
+      #WARNING: we assume here an order in the files. TODO
       #We assume that the config, the world and the session file has the same order
       #and based on the same numbers
-     # robot_count = 0
+      # robot_count = 0
      session['Robots'].each_with_index do |robot_file, robot_count|
        robot = load_robot(robot_file)
-       robot.name = config['Robots'][robot_count] 
-       robot_model = RobotConnect.new( @conn.getModel(robot.name), robot_count *2 )
+       robot_name = config['Robots'][robot_count] 
+       puts "robot name " + robot_name
+       robot_model = RobotConnection.new( @conn.getModel(robot_name))
        robot._init( robot_model ) # 0, 2, 4
       # robot_count += 1 
      end
@@ -103,13 +91,12 @@ module Rubots
 
     puts "running main loop"
     @updateTimer = Qt::Timer.new( self )
-    connect( @updateTimer, SIGNAL('timeout()'),
-                          self, SLOT('update()') )
+    connect( @updateTimer, SIGNAL('timeout()'), self, SLOT('update()') )
     @updateTimer.start(500)
   end
 
   #if we are running the update method will be called and eventually cleanup
-  #if we are not running we cleanup ourselves
+  #if we are  not running we cleanup ourselves
   def finish
     if @running
       @running = false
@@ -154,13 +141,10 @@ module Rubots
            if robot.nil?
              raise "No robot could be created from the file"
            end
-          # robot.send(:super)
-           #TODO: check we really have a correct thing here
-   #        robot._init( @connection, robot_count *2 ) # 0, 2, 4
            @robots << robot
+           return robot
          end
        end
-       return robot
   end
 
   
@@ -184,7 +168,6 @@ class GameControlWidget < Qt::Widget
     game = Rubots::Game.new
     $engine = game
     game.init
-    game.load
     run = Qt::PushButton.new("Run!")
     run.resize(100, 30)
     run.connect(SIGNAL :clicked) { game.mainLoop }

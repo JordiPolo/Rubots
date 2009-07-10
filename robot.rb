@@ -27,9 +27,21 @@ require 'rules'
 
 module Rubots
 
-  
-  module Tools
+  class RobotConnection
 
+    def initialize (model)
+      @model = model
+    end
+    def name
+      @model.name      
+    end
+    def positionIface 
+      name = "position_iface_0" 
+      @model.positionIface name
+    end
+  end
+
+  module Tools
     def normalize (data, limit, real_limit)
       if data < -limit
         data = -limit
@@ -49,7 +61,7 @@ module Rubots
     def initialize
       @bullets = Rules::BULLETS
     end
-    def _init (connection, interface_index)
+    def _init (connection)
     end
     def _cleanup
     end
@@ -89,8 +101,9 @@ module Rubots
    
       @_connection = connection
       @_ifacePosition = connection.positionIface 
-      @_ifacePosition.Open 
-      @_ifacePosition.setDefaultSpeed( Rules::MAX_VELOCITY, Rules::MAX_VELOCITY, Rules::MAX_TURN_RATE)
+      @name = connection.name
+      @_ifacePosition.open 
+      @_ifacePosition.setDefaultVelocity( Rules::MAX_VELOCITY, Rules::MAX_VELOCITY, Rules::MAX_TURN_RATE)
  
     #  @radar._init(connection)     
       @gun._init(connection)
