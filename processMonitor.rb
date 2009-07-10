@@ -18,7 +18,7 @@
 =end
 
 
-module Rubots
+module RRMi
   class ProcessMonitor
 
     def initialize(startCmd, processString, success, error)

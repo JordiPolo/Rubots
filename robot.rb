@@ -29,10 +29,6 @@ module Rubots
 
   
   module Tools
-    def toRad (degrees)
-      rad = degrees * Math::PI / 180.0
-      rad
-    end
 
     def normalize (data, limit, real_limit)
       if data < -limit
@@ -93,17 +89,18 @@ module Rubots
    
       @_connection = connection
       @_ifacePosition = connection.positionIface 
-      @_ifacePosition.open 
+      @_ifacePosition.Open 
+      @_ifacePosition.setDefaultSpeed( Rules::MAX_VELOCITY, Rules::MAX_VELOCITY, Rules::MAX_TURN_RATE)
  
-      @radar._init(connection)     
+    #  @radar._init(connection)     
       @gun._init(connection)
-      @fiducialId = ifaceIndex #BIG assumption
+ #     @fiducialId = ifaceIndex #TODO: where we can get this info from ?
       @radar.add_observer self  #interested in radar events
     end
     
     def _cleanup 
-      @_ifacePosition.unsubscribe
-      @radar._cleanup
+      @_ifacePosition.cleanup
+   #   @radar._cleanup
       @gun._cleanup
     end 
     ###################################
@@ -143,6 +140,7 @@ module Rubots
       method_name = "on" + event
       eval (method_name + " object")        
     end
+
     ##############################
     # Movement
     # Speed commands return inmediately
@@ -152,13 +150,14 @@ module Rubots
     def setForwardSpeed(speed)
         puts "robot speed " + speed.to_s
        @forwardSpeed = normalize(speed, Rules::MAX_API_VELOCITY, Rules::MAX_VELOCITY)  
-       @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
+       @_ifacePosition.setVelocity(@forwardSpeed, 0.0, @turningSpeed)
+
     end
 
     def setTurningSpeed (degrees)
        puts "robot turning " + degrees.to_s 
        @turningSpeed = normalize(degrees, Rules::MAX_API_TURN_RATE, Rules::MAX_TURN_RATE)  
-       @_ifacePosition.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
+       @_ifacePosition.setVelocity(@forwardSpeed, 0.0, @turningSpeed )
     end 
 
     def setSpeed (speed, angle)
@@ -173,45 +172,25 @@ module Rubots
 
     # movement
     def forward (meters)
-      updatePosition
-      if @forwardSpeed == 0 
-        setForwardSpeed Rules::MAX_API_VELOCITY
-      end
-      if (meters < 0) and (@forwardSpeed > 0) or 
-         (meters > 0) and (@forwardSpeed < 0)
-         setForwardSpeed -@forwardSpeed
-      end 
-      @_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
+      @_ifacePosition.setRelativePosition( meters, 0, 0 )
     end
 
     def turn (degrees)
-      updatePosition
-       if @turningSpeed == 0 
-         setTurningSpeed Rules::MAX_API_TURN_RATE 
-      end
-      @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], @position[:yaw] + toRad( degrees), 1)
+      @_ifacePosition.setRelativePosition( 0, 0, degrees )
     end
  
     #absolute position
     def turnTo (degrees)
-      updatePosition
-       if @turningSpeed == 0 
-         setTurningSpeed Rules::MAX_API_TURN_RATE 
-      end
-      @_ifacePosition.set_cmd_pose(@position[:x], @position[:y], toRad( degrees), 1)
+      pos = @_ifacePosition.getPosition 
+      turn( degrees - pos.yaw )
     end
 
 
     def worldPosition
-      updatePosition
-      return @position
+      @_ifacePosition.getPosition 
     end 
 
    private
-    def updatePosition
-       @_connection.read #this is needed?
-       @position = {:x => @_ifacePosition.px, :y => @_ifacePosition.py, :yaw => @_ifacePosition.pa } 
-    end
     include Tools
 
   end 

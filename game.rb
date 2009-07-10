@@ -17,72 +17,19 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-require 'gazeboc'
+
 require 'yaml'
 require 'Qt'
 
 require 'robot'
-require 'processMonitor'
+require 'rrmi'
+
 
 
 
 
 module Rubots
-  class Connection
-    def startUnderlyingSoftware(config)
 
-      gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
-    
-       # launch gazebo    
-       @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
-       @gazeboProcess.run 
-
-       puts "Gazebo launched"
-
-       if !@gazeborProcess.running?
-         raise "gazebo died"
-       end
-   
-       @client = Gazeboc::Client.new
-       @simIface = Gazeboc::SimulationIface.new
-
-      begin 
-        @client.Connect 0
-      rescue Exception => e
-        @gazeboProcess.kill
-        raise e.message 
-      end
-    
-    end
-
-
-    def running?
-      @gazeboProcess.running?
-    end 
-
-    def cleanup
-      @gazeboProcess.kill 
-    end
-
-    def getModel (model_name)
-      Model.new @client, model_name
-    end
-
-  end
-
-  class Model
-    def initialize (client, name)
-      @client = client
-      @name = name
-    end
-
-    def positionIface (name)
-      iface_name = @name + "::" + name 
-      
-    end
-
-  end
-  
   class RobotConnection 
     def initialize (model, interface)
       @model = model
@@ -96,14 +43,6 @@ module Rubots
     end
   end
 
-  class positionIface
-    def initialize (client, fullname)
-    end
-
-    def open
-
-    end
-  end
 
   class Game < Qt::Object
 
@@ -124,7 +63,7 @@ module Rubots
      end
      config = YAML::load(File.open(config_file))
      
-     @conn = Connection.new
+     @conn = RRMi::Connection.new
      @conn.startUnderlyingSoftware config
 
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing Gazebo"; cleanup })
