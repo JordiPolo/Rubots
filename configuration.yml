@@ -1,2 +1,4 @@
 gazebo_world: pioneer2dx.world 
-player_config: pioneer2dx.cfg
+Robots:
+- basicRobot.rb
+- basicRobot2.rb

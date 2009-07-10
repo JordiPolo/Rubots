@@ -18,6 +18,7 @@
 =end
 
 
+#
 module Rubots
   class Rules
     #general

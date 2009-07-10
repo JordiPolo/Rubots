@@ -89,15 +89,14 @@ module Rubots
       @energy = Rules::LIFE
     end
 
-    def _init (connection, interface_index)
-      ifaceIndex = interface_index
+    def _init (connection)
+   
       @_connection = connection
-      @_ifacePosition = Playerc::Playerc_position2d.new(@_connection, ifaceIndex)
-      if @_ifacePosition.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
-        raise  Playerc::playerc_error_str()
-      end
-      @radar._init(connection, ifaceIndex)     
-      @gun._init(connection, ifaceIndex)
+      @_ifacePosition = connection.positionIface 
+      @_ifacePosition.open 
+ 
+      @radar._init(connection)     
+      @gun._init(connection)
       @fiducialId = ifaceIndex #BIG assumption
       @radar.add_observer self  #interested in radar events
     end

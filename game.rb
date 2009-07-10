@@ -17,7 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-require 'playerc'
+require 'gazeboc'
 require 'yaml'
 require 'Qt'
 
@@ -25,7 +25,86 @@ require 'robot'
 require 'processMonitor'
 
 
+
+
 module Rubots
+  class Connection
+    def startUnderlyingSoftware(config)
+
+      gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
+    
+       # launch gazebo    
+       @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
+       @gazeboProcess.run 
+
+       puts "Gazebo launched"
+
+       if !@gazeborProcess.running?
+         raise "gazebo died"
+       end
+   
+       @client = Gazeboc::Client.new
+       @simIface = Gazeboc::SimulationIface.new
+
+      begin 
+        @client.Connect 0
+      rescue Exception => e
+        @gazeboProcess.kill
+        raise e.message 
+      end
+    
+    end
+
+
+    def running?
+      @gazeboProcess.running?
+    end 
+
+    def cleanup
+      @gazeboProcess.kill 
+    end
+
+    def getModel (model_name)
+      Model.new @client, model_name
+    end
+
+  end
+
+  class Model
+    def initialize (client, name)
+      @client = client
+      @name = name
+    end
+
+    def positionIface (name)
+      iface_name = @name + "::" + name 
+      
+    end
+
+  end
+  
+  class RobotConnection 
+    def initialize (model, interface)
+      @model = model
+      @interface_index = interface
+    end
+    #def method_missing
+    #end
+    def positionIface
+      name = "position_" + @interface_index.to_s
+      @model.positionIface name
+    end
+  end
+
+  class positionIface
+    def initialize (client, fullname)
+    end
+
+    def open
+
+    end
+  end
+
   class Game < Qt::Object
 
    def initialize
@@ -38,76 +117,32 @@ module Rubots
    def init
      #read configuration 
      config_file = "configuration.yml"
+     session_file = "session.yml"
+
      if not File.exists? config_file
        raise "Configuration file #{config_file} can not be found" 
      end
      config = YAML::load(File.open(config_file))
-    
-     gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
-     player_cmd = "player #{config['player_config']} 2>&1"
-    
-     puts gazebo_cmd, player_cmd
-     # launch gazebo    
-     @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
-     @gazeboProcess.run 
-
-     # launch player
-     @playerProcess = ProcessMonitor.new(player_cmd, "player ", "success", "error")
-     @playerProcess.run 
      
-     puts "Gazebo and Player launched"
+     @conn = Connection.new
+     @conn.startUnderlyingSoftware config
 
-     if !@playerProcess.running?
-       raise "player died"
-     end
-   
-     @connection = Playerc::Playerc_client.new(nil, 'localhost', 6665)
-     
-     retries = 10
-     connected = false
-     while (!connected) and (retries > 0)
-       sleep 1
-       if @connection.connect == 0
-         connected = true 
-       end
-     end
-     
-     if !connected
-       error = Playerc::playerc_error_str()
-       @gazeboProcess.kill 
-       @playerProcess.kill
-       raise error
-     end
+     Signal.trap(0, proc { puts "Terminating: #{$$}, killing Gazebo"; cleanup })
 
-# using the sim interface makes player queue errors to appear
-#     @simIface = Playerc::Playerc_simulation.new( @connection, 0)
-#     @simIface.get_property("")
-#     puts @simIface.public_methods(false).sort
-#     if @simIface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
-#       raise  Playerc::playerc_error_str()
-#     end
-
-
-     Signal.trap(0, proc { puts "Terminating: #{$$}, killing player and gazebo"; cleanup })
-
-  end
-  
-
-  def load
-     #read configuration 
-     file = "session.yml"
      if not File.exists? file
-       raise "The game sesssion file #{file} can not be found" 
+       raise "The game sesssion file #{session_file} can not be found" 
      end
-     session = YAML::load(File.open(file))
+     session = YAML::load(File.open(session_file))
       
       #WARNING: we assume here an order in the files. 
       #We assume that the config, the world and the session file has the same order
       #and based on the same numbers
      # robot_count = 0
      session['Robots'].each_with_index do |robot_file, robot_count|
-       robot = load_robot(robot_file) 
-       robot._init( @connection, robot_count *2 ) # 0, 2, 4
+       robot = load_robot(robot_file)
+       robot.name = config['Robots'][robot_count] 
+       robot_model = RobotConnect.new( @conn.getModel(robot.name), robot_count *2 )
+       robot._init( robot_model ) # 0, 2, 4
       # robot_count += 1 
      end
 
@@ -151,8 +186,7 @@ module Rubots
 
   slots :update
   def update
-      @running = @running and @gazeboProcess.running? and @playerProcess.running?
-      @connection.read 
+      @running = @running and @conn.running? 
       if !@running
         @updateTimer.stop
         @threads.each { |aThread|  aThread.kill; aThread.join }
@@ -168,8 +202,8 @@ module Rubots
          raise "The robot file #{robot_file} can not be found"
        end
        robot = nil
-       robot_count = 0
        total_bytes = 0
+
        File.open( robot_file ) do |f|
 #TODO: count code size
 #       f.each_line {|l| total_bytes += line.size unless line =~ /^\s*($|#)/ }
@@ -185,7 +219,6 @@ module Rubots
            #TODO: check we really have a correct thing here
    #        robot._init( @connection, robot_count *2 ) # 0, 2, 4
            @robots << robot
-           robot_count += 1
          end
        end
        return robot
@@ -196,10 +229,7 @@ module Rubots
     @robots.each do  |r| 
       r._cleanup  #game internal cleanup of robots
     end
-
-    @connection.disconnect
-    @gazeboProcess.kill 
-    @playerProcess.kill
+    @conn.cleanup
     Qt::Application.instance.quit
   end
  
