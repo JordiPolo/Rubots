@@ -1,25 +1,31 @@
 
-Rubots depends on:
-- Player 3.0 and its Ruby bindings 
-- Gazebo 0.9 
+Currently the code is divided in two modules:
 
-As those versions are yet to be released, only two methods are available to get them:
+Rubots
+RRMi 
+
+RRMi depends on 
+Gazebo SVN
+Gazebo Ruby bindings
+
+Rubots depends on RRMi
+
+To get Gazebo SVN:
 
 1.- svn:
 Instructions here:
  http://sourceforge.net/projects/playerstage/develop
- You need to compile and install Player and Gazebo (not other software of the project).
-
-Player comes with looots of drivers, you dont need to install them all, only make sure 
-the Ruby bindings got compiled and installed.  
+ You need to compile and install Gazebo (not other software of the project).
 
 Gazebo depends on Ogre 1.6 and on ode 0.11 that may not be in the repositories of your 
-distribution. Also, sound and other alternative functionality is not needed currently.
+distribution. Sound and other alternative functionality of Gazebois not needed currently by Rubots.
 
 
 2.- Ubuntu Karmic / Debian Sid repository:
 https://launchpad.net/~thjc/+archive/ppa
 
+WARNING: the ppa repository have not updated yet to the needed versions for Rubots!
+It may soon...
 
 Any problem compiling those programs, you can report here, I will solve it or send them
 "upstream" if necessary. 
