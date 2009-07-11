@@ -1,4 +1,3 @@
-
 Currently the code is divided in two modules:
 
 Rubots
@@ -8,9 +7,9 @@ RRMi depends on
 Gazebo SVN
 Gazebo Ruby bindings
 
-Rubots depends on RRMi
+Rubots depends only on RRMi and YAML
 
-To get Gazebo SVN:
+To get Gazebo and its Ruby bindings:
 
 1.- svn:
 Instructions here:
