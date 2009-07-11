@@ -33,19 +33,22 @@ class TestRobot < Rubots::Robot
     end
 
     def run
-      puts "testrobot running"
-#      speed = 50, 5 
-      initial_position = worldPosition
       stop
-      forward 10
+      puts "testrobot running"
+      initial_position = worldPosition
+#      stop
+      setSpeed 50, 0
+#      forward 10
       sleep 6
       position2 = worldPosition
       if (initial_position == position2)
         raise "we are not moving"
       end
+      stop 
+      sleep 1
       puts "moving backwards"
       setSpeed -50,0
-      forward -10 
+#      forward -10 
       sleep 6
       position = worldPosition
       puts "robot moved among " 

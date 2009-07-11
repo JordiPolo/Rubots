@@ -28,8 +28,8 @@ module Rubots
 
     #robots
     #limits in the simulation
-    MAX_VELOCITY = 10  # max moving speed
-    MAX_TURN_RATE = 1  # max turning speed
+    MAX_VELOCITY = 100  # max moving speed
+    MAX_TURN_RATE = 10  # max turning speed
     LIFE = 100  # initial energy of robot
     ID_ROBOTS = 1..10 # ids allocated for robots
 

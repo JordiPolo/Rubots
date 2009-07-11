@@ -1,6 +1,10 @@
 
 require 'gazeboc'
 
+require 'rubygems'
+require 'ruby-debug'
+
+
 require 'processMonitor'
 
 #Ruby Robotics Middleware 
@@ -121,12 +125,15 @@ module RRMi
     def cleanup
       @iface.Close
     end
- 
+
+ #TODO: this is TOTALLY broken
     def setRelativePosition ( *args )
       #player
       #@_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
       #check the motors
       pos = Command2D.new *args
+      #debugger
+      puts pos
       stop # basically dont control with vel and pos, choose!
       target_pos = getPosition + pos     
       vel = alingVelPos( @default_vel, pos )
@@ -187,11 +194,16 @@ module RRMi
     def alingVelPos( vel, pos )
     #  ['x', 'y', 'yaw'].each do |param|      
       final_vel = vel
-      pos.each_with_index do |cmd, i|
-        if (cmd < 0) and (vel[i] > 0) or 
-           (cmd > 0) and (vel[i] < 0)
-        final_vel[i] = -final_vel[i]
-        
+      [:x, :y, :yaw].each do |cmd|
+        if (pos.send(cmd) < 0) and (vel.send(cmd) > 0) or 
+           (pos.send(cmd) > 0) and (vel.send(cmd) < 0)
+          if cmd == :x 
+            final_vel.x = -final_vel.x 
+          elsif cmd == :y 
+            final_vel.y = -final_vel.y 
+          elsif cmd == :yaw 
+            final_vel.yaw = -final_vel.yaw 
+          end          
         end
       end
       return final_vel
