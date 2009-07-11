@@ -43,20 +43,17 @@ module Rubots
    
     end
 
-    def _init (connection, interface_index)
+    def _init (connection)
       @_connection = connection
-      @_iface = Playerc::Playerc_fiducial.new(@_connection, interface_index)
-      if @_iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
-        raise  Playerc::playerc_error_str()
-      end
+      @_iface = @_connection.fiducialIface
     end
 
     def _cleanup
-      @_iface.unsubscribe
+      @_iface.cleanup
     end 
 
     def scan
-      @_connection.read
+  #    @_connection.read
       #puts "fiducial device with #{@_iface.fiducials_count} readings"
       
       if @_iface.fiducials_count == 0

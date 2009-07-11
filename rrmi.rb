@@ -1,6 +1,4 @@
-
 require 'gazeboc'
-
 require 'rubygems'
 require 'ruby-debug'
 
@@ -53,19 +51,19 @@ module RRMi
       else
         gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
       end
-    
+
        # launch gazebo    
        @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
        @gazeboProcess.run 
 
        puts "Gazebo launched"
+   
+       @client = Gazeboc::Client.new
+       @simIface = Gazeboc::SimulationIface.new
 
        if !@gazeboProcess.running?
          raise "gazebo died"
        end
-   
-       @client = Gazeboc::Client.new
-       @simIface = Gazeboc::SimulationIface.new
 
       begin 
         @client.Connect 0
@@ -98,16 +96,48 @@ module RRMi
     def initialize (client, name)
       @client = client
       @name = name
+      @simIface = Gazeboc::SimulationIface.new 
+    end
+
+    def fiducialID   #TODO: fix the Ruby bindings to make this work
+      @simIface.Open @client, "default"
+      @simIface.Lock 1
+      @simIface.GetModelFiducialID @name, id 
+      @simIface.Unlock
+      @simIface.Close #TODO:is this safe?  Or I close other instances?
+      return id
     end
 
     def positionIface (name)
       iface_name = @name + "::" + name 
       iface = PositionIface.new @client, iface_name
     end
-
+    def fiducialIface (name)
+      iface_name = @name + "::" + name 
+      iface = FiducialIface.new @client, iface_name
+      #Playerc::Playerc_fiducial.new(@_connection, interface_index)
+      #if @_iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+      #  raise  Playerc::playerc_error_str()
+      #end
+    end
   end
 
-  
+  class FiducialIface
+    def initialize (client, fullname)
+      @client = client
+      @name = fullname
+      @iface = Gazeboc::FiducialIface.new
+    end
+
+    def open
+      @iface.Open  @client, @name
+    end
+
+    def cleanup
+      @iface.Close
+    end
+
+  end
 
 
   class PositionIface

@@ -35,6 +35,9 @@ module Rubots
     def name
       @model.name      
     end
+    def fiducialID
+      @model.fiducialID
+    end
     def positionIface 
       name = "position_iface_0" 
       @model.positionIface name
@@ -107,7 +110,7 @@ module Rubots
  
     #  @radar._init(connection)     
       @gun._init(connection)
- #     @fiducialId = ifaceIndex #TODO: where we can get this info from ?
+      @fiducialId = connection.fiducialID
       @radar.add_observer self  #interested in radar events
     end
     

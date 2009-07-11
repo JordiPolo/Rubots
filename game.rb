@@ -24,7 +24,8 @@ require 'Qt'
 require 'robot'
 require 'rrmi'
 
-
+require 'rubygems'
+require 'ruby-debug'
 
 
 
@@ -53,7 +54,7 @@ module Rubots
 
      config = YAML::load(File.open(config_file))
      session = YAML::load(File.open(session_file))
-     
+
      @conn = RRMi::Connection.new
      @conn.startUnderlyingSoftware( config, true )
 
