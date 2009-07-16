@@ -17,16 +17,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
+require 'rubygems'
+require 'ruby-debug'
 
 require 'yaml'
 require 'Qt'
 
-require 'robot'
 
-require 'connection'
+require 'connection' #rrmi
+require 'robot' 
 
-require 'rubygems'
-require 'ruby-debug'
+
 
 
 
@@ -64,7 +65,6 @@ module Rubots
      end
 
 
-
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
 
       
@@ -76,7 +76,6 @@ module Rubots
      session['Robots'].each_with_index do |robot_file, robot_count|
        robot = load_robot(robot_file)
        robot_name = config['Robots'][robot_count] 
-       puts "robot name " + robot_name
        robot_model = @conn.getModel(robot_name, robot_count * 10)
        robot._init( robot_model ) 
      end

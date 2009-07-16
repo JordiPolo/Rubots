@@ -22,17 +22,18 @@ require 'playerc'
 
 require 'rubygems'
 require 'ruby-debug'
+
 require 'forwardable'
 
 require 'processMonitor'
 require 'rrmi_connections'
 require 'rrmi_common'
 require 'rrmi'
+require 'model'
+
 
 #Ruby Robotics Middleware 
 module RRMi
-
-#TODO: move this to connections? This makes sense?
 
   class Connection
     attr_reader :gazeboClient, :playerClient
@@ -116,14 +117,16 @@ module RRMi
       end
     end
 
-    def running?
+    # if all the processes are running
+    def running? 
       @monitoringProcesses.inject(true) {|result, process| result and process.running?}
     end 
 
+    # cleanup all the processes
     def cleanup
       @monitoringProcesses.each{ |p| p.kill}
     end
-
+    
     def using?(feature)
       if feature == 'player'
         return @usingPlayer
@@ -133,7 +136,8 @@ module RRMi
         return false
       end
     end
-
+ 
+    #create a new model of this connection with this name and index
     def getModel (model_name, default_index=nil)
       Model.new self, model_name, default_index
     end

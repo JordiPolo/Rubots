@@ -75,3 +75,18 @@ class TestRobot < Rubots::Robot
 
 end
 
+=begin
+     public void run() {
+         while (true) {
+             ahead(100);
+             turnGunRight(360);
+             back(100);
+             turnGunRight(360);
+         }
+     }
+  
+     public void onScannedRobot(ScannedRobotEvent e) {
+         fire(1);
+     }
+
+=end

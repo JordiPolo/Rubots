@@ -25,68 +25,43 @@ require 'ruby-debug'
 require 'forwardable'
 
 require 'processMonitor'
-require 'rrmi_connections'
+require 'rrmi_connection'
 require 'rrmi_common'
 
 #Ruby Robotics Middleware 
 module RRMi
 
-  class Model
-    attr_reader :name
-    def initialize (connection, name, default_index)
-      @connection = connection
-      @name = name
-      @default_index = default_index
-      puts "default index  " + default_index.to_s
-  #    @simIface = Gazeboc::SimulationIface.new 
-    end
 
-    def fiducialID  #TODO: fix the Ruby bindings to make this work
-      @simIface.Open @connection.gazeboClient, "default"
-      @simIface.Lock 1
-      #@simIface.GetModelFiducialID @name, id 
-      @simIface.Unlock
-      @simIface.Close #TODO:is this safe?  Or I close other instances?
-      #return id
-      raise "dont call this"
-    end
-    
-
-    def positionIface (iface_index = nil)
-      PositionIface.new @connection, getIndex( iface_index )
-    end
-
-    def fiducialIface (iface_index = nil)
-      FiducialIface.new @connection, getIndex( iface_index )
-    end
-
-  private 
-    def getIndex (iface_index)
-      if iface_index.class == "String"
-        index = @name + "::" + name 
+  class FiducialIface
+    include IfaceConnection
+    def initialize (connection, index)
+      init connection, index 
+#        @ifaceNumber = @name.split('::')[0][-1,1].to_i #last character before ::
+      if @usingPlayer
+         @iface = Playerc::Playerc_fiducial.new(@connection.playerClient, @ifaceNumber)
       else
-        index = iface_index || @default_index
+        @iface = Gazeboc::FiducialIface.new
       end
     end
   end
 
 
-  class FiducialIface
-    extend Forwardable
-    def_delegators :@iface, :open, :cleanup
-    def initialize (client, index)
-      @iface = FiducialIfaceConnection.new client, index
-    end
-  end
-
-
   class PositionIface
-    extend Forwardable
-    def_delegators :@iface, :open, :cleanup, :getPosition
 
-    def initialize (client, index)
+    def initialize (connection, index)
+      init connection, index
       @iface = PositionIfaceConnection.new client, index
       @default_vel = Command2D.new( 10,10,1 ) #random numbers, just to make it move if the user provide no defaults
+      if @usingPlayer
+         @iface = Playerc::Playerc_position2d.new(@connection.playerClient, @ifaceNumber)
+      else
+        @iface = Gazeboc::PositionIface.new
+      end
+      @iface_sim = Playerc::Playerc_simulation.new(@connection.playerClient, 0)
+        if @iface_sim.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+          raise  Playerc::playerc_error_str()
+        end
+
     end
 
  #TODO: this is TOTALLY broken
@@ -127,7 +102,57 @@ module RRMi
 
    private
 
+
+    def setVel (vel)
+      puts vel
+      if @usingPlayer
+        @iface.set_cmd_vel(vel.x, vel.y, toRad( vel.yaw ),1)
+      else
+        with_lock do
+          @iface.data.cmdVelocity.pos.x = vel.x
+          @iface.data.cmdVelocity.pos.y = vel.y
+          @iface.data.cmdVelocity.yaw = vel.yaw #TODO:this is rad or degrees?
+        end
+      end
+    end
+
+     # TODO make this work on Gazebo backend
+    def setRelativePosition(pos)
+      my_pos = getPosition
+      new_pos = my_pos + pos
+      puts "new pos", new_pos
+      @iface.set_cmd_pose(new_pos.x,new_pos.y,new_pos.yaw, 1)
+    end
     
+    def getGlobalPosition
+      pos = nil
+      pos = @iface_sim.get_pose2d("pioneer2dx_model1")
+   #   Command2D.new( pos.px, pos.py, pos.pa )
+      Command2D.new( pos[0], pos[1],pos[2] )
+    end
+
+    #TODO: this is a global position?
+    def getPosition
+      return getGlobalPosition
+      my_pos = nil
+      if @usingPlayer
+     #   @connection.playerClient.read #this is needed?
+        my_pos = Command2D.new( @iface.px, @iface.py, @iface.pa ) 
+      else
+        with_lock do
+          pose = @iface.data.pose
+          my_pos = Command2D.new(pose.pos.x, pose.pos.y, pose.yaw)
+        end 
+      end
+      return my_pos
+    end
+
+    def toRad (degrees)
+      rad = degrees * Math::PI / 180.0
+      rad
+    end
+
+=begin   
     def alingVelPos( vel, pos )
     #  ['x', 'y', 'yaw'].each do |param|      
       final_vel = vel
@@ -146,6 +171,6 @@ module RRMi
       return final_vel
     end
 
-    
+=end    
   end
 end

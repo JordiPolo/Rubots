@@ -21,6 +21,46 @@
 #Ruby Robotics Middleware 
 module RRMi
 
+  module IfaceConnection
+    def init (connection, index)
+      @usingPlayer = false
+      @iface = nil
+      @ifaceNumber = index 
+      @name = index
+      @connection = connection
+      if @connection.using? 'player'
+        @usingPlayer = true
+      end
+    end
+
+    def open
+      puts "opening interface" 
+      if @usingPlayer
+        puts "using player"
+        if @iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+          raise  Playerc::playerc_error_str()
+        end
+      else
+        @iface.Open  @connection.gazeboClient, @name #if fail, exception
+      end
+    end
+
+    def cleanup
+      if @usingPlayer
+        @iface.unsubscribe
+      else
+        @iface.Close
+      end
+    end
+
+    def with_lock(&block)
+      @iface.Lock 1
+      yield
+      @iface.Unlock
+    end
+  end
+
+
 
 
 

@@ -79,21 +79,21 @@ module Rubots
       @forwardSpeed = 0
       @turningSpeed = 0
       @name = "Unknown"
-#      @_ifaceIndex = 0
       @_ifacePosition = nil
+   #   @_model = nil
       @energy = Rules::LIFE
     end
 
-    def _init (connection)
+    def _init (model)
    
-      @_connection = connection
-      @_ifacePosition = connection.positionIface 
-      @name = connection.name
+   #   @_model = model
+      @_ifacePosition = model.positionIface 
+      @name = model.name
       @_ifacePosition.open 
       @_ifacePosition.setDefaultVelocity( Rules::MAX_VELOCITY, Rules::MAX_VELOCITY, Rules::MAX_TURN_RATE)
  
     #  @radar._init(connection)     
-      @gun._init(connection)
+      @gun._init(model)
 #TODO: fiducial ID
 #      @fiducialId = connection.fiducialID
       @radar.add_observer self  #interested in radar events
@@ -202,18 +202,4 @@ module Rubots
   end 
 
 end
-=begin
-     public void run() {
-         while (true) {
-             ahead(100);
-             turnGunRight(360);
-             back(100);
-             turnGunRight(360);
-         }
-     }
-  
-     public void onScannedRobot(ScannedRobotEvent e) {
-         fire(1);
-     }
 
-=end
