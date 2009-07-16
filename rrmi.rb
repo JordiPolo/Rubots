@@ -25,7 +25,7 @@ require 'ruby-debug'
 require 'forwardable'
 
 require 'processMonitor'
-require 'rrmi_connection'
+require 'connection'
 require 'rrmi_common'
 
 #Ruby Robotics Middleware 
@@ -47,10 +47,9 @@ module RRMi
 
 
   class PositionIface
-
+    include IfaceConnection
     def initialize (connection, index)
       init connection, index
-      @iface = PositionIfaceConnection.new client, index
       @default_vel = Command2D.new( 10,10,1 ) #random numbers, just to make it move if the user provide no defaults
       if @usingPlayer
          @iface = Playerc::Playerc_position2d.new(@connection.playerClient, @ifaceNumber)

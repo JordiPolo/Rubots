@@ -175,21 +175,37 @@ class GameControlWidget < Qt::Widget
 
   def initialize()
     super
-    game = Rubots::Game.new
-    $engine = game
-    game.init
+    @game = Rubots::Game.new
+    #$engine = @game
+    
     run = Qt::PushButton.new("Run!")
     run.resize(100, 30)
-    run.connect(SIGNAL :clicked) { game.mainLoop }
+    run.connect(SIGNAL :clicked) { run_batch }
+
+    watch = Qt::PushButton.new("Watch!")
+    watch.resize(100, 30)
+    watch.connect(SIGNAL :clicked) { run_visual }
+
+
     quit = Qt::PushButton.new('Quit')
     quit.setFont(Qt::Font.new('Times', 18, Qt::Font::Bold))
-    quit.connect(SIGNAL :clicked) { game.finish }
-    layout = Qt::VBoxLayout.new
-    layout.addWidget(run)
-    layout.addWidget(quit)
-    setLayout(layout)
-  end
+    quit.connect(SIGNAL :clicked) { @game.finish }
 
+    layout = Qt::VBoxLayout.new
+    layout.addWidget run
+    layout.addWidget watch
+    layout.addWidget quit
+    setLayout layout
+
+  end
+  def run_visual
+    @game.init false
+    @game.mainLoop
+  end
+  def run_batch
+    @game.init true
+    @game.mainLoop
+  end
 end
 
 

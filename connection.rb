@@ -26,7 +26,6 @@ require 'ruby-debug'
 require 'forwardable'
 
 require 'processMonitor'
-require 'rrmi_connections'
 require 'rrmi_common'
 require 'rrmi'
 require 'model'
