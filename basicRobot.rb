@@ -44,9 +44,9 @@ class TestRobot < Rubots::Robot
       puts "testrobot running"
       initial_position = worldPosition
 #      stop
-      setSpeed 10, 0
+      setSpeed 100, 0
 #      forward 10
-      sleep 20
+      sleep 10
       position2 = worldPosition
       if (initial_position == position2)
         raise "we are not moving"

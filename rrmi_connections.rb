@@ -45,12 +45,14 @@ module RRMi
     end
 
     def open
+      puts "opening interface" 
       if @usingPlayer
+        puts "using player"
         if @iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
           raise  Playerc::playerc_error_str()
         end
       else
-        @iface.Open  @connection.gazeboClient, @name
+        @iface.Open  @connection.gazeboClient, @name #if fail, exception
       end
     end
 
@@ -83,6 +85,7 @@ module RRMi
          @iface = Playerc::Playerc_fiducial.new(@connection.playerClient, @ifaceNumber)
       else
         @iface = Gazeboc::FiducialIface.new
+
       end
     end
 
@@ -103,12 +106,19 @@ module RRMi
       init
       if @usingPlayer
          @iface = Playerc::Playerc_position2d.new(@connection.playerClient, @ifaceNumber)
+#         @iface_loc = Playerc::Playerc_localize.new(@connection.playerClient, @ifaceNumber)
       else
         @iface = Gazeboc::PositionIface.new
       end
+      @iface_sim = Playerc::Playerc_simulation.new(@connection.playerClient, 0)
+        if @iface_sim.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+          raise  Playerc::playerc_error_str()
+        end
+      
     end
 
     def setVel (vel)
+      puts vel
       if @usingPlayer
         @iface.set_cmd_vel(vel.x, vel.y, toRad( vel.yaw ),1)
       else
@@ -120,11 +130,27 @@ module RRMi
       end
     end
 
+     # TODO make this work on Gazebo backend
+    def setRelativePosition(pos)
+      my_pos = getPosition
+      new_pos = my_pos + pos
+      puts "new pos", new_pos
+      @iface.set_cmd_pose(new_pos.x,new_pos.y,new_pos.yaw, 1)
+    end
+    
+    def getGlobalPosition
+      pos = nil
+      pos = @iface_sim.get_pose2d("pioneer2dx_model1")
+   #   Command2D.new( pos.px, pos.py, pos.pa )
+      Command2D.new( pos[0], pos[1],pos[2] )
+    end
+
     #TODO: this is a global position?
     def getPosition
+      return getGlobalPosition
       my_pos = nil
       if @usingPlayer
-        @connection.playerClient.read #this is needed?
+     #   @connection.playerClient.read #this is needed?
         my_pos = Command2D.new( @iface.px, @iface.py, @iface.pa ) 
       else
         with_lock do

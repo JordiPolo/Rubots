@@ -98,7 +98,12 @@ module Rubots
 #      @fiducialId = connection.fiducialID
       @radar.add_observer self  #interested in radar events
     end
-    
+
+    #periodic instructions come here
+    def _run
+      
+    end
+
     def _cleanup 
       @_ifacePosition.cleanup
    #   @radar._cleanup
@@ -113,7 +118,7 @@ module Rubots
     def run
    #   @radar.scan()
     end
-
+    
     def onFinish
     end
 

@@ -22,7 +22,8 @@ require 'yaml'
 require 'Qt'
 
 require 'robot'
-require 'rrmi'
+
+require 'connection'
 
 require 'rubygems'
 require 'ruby-debug'
@@ -63,6 +64,7 @@ module Rubots
      end
 
 
+
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
 
       
@@ -92,13 +94,14 @@ module Rubots
     @robots.each do |r|
       @threads << Thread.new do 
         r.run # robots can enter in busy loop here or setup and become event driven
+        
       end
     end
 
     puts "running main loop"
     @updateTimer = Qt::Timer.new( self )
     connect( @updateTimer, SIGNAL('timeout()'), self, SLOT('update()') )
-    @updateTimer.start(500)
+    @updateTimer.start(100)
   end
 
   #if we are running the update method will be called and eventually cleanup
@@ -118,6 +121,8 @@ module Rubots
 
   slots :update
   def update
+      @conn.update 
+      @robots.each { |r|  r._run } 
       @running = @running and @conn.running? 
       if !@running
         @updateTimer.stop

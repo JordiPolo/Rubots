@@ -53,7 +53,8 @@ module RRMi
     def signal(signal_num)
       begin
         Process::kill signal_num, @pid.to_i
-      rescue
+      rescue Exception => e
+        puts e.message
         return false
       end
       return true

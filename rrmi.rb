@@ -31,116 +31,13 @@ require 'rrmi_common'
 #Ruby Robotics Middleware 
 module RRMi
 
-#TODO: move this to connections? This makes sense?
-
-  class Connection
-    attr_reader :gazeboClient, :playerClient
-    def initialize
-      @usingPlayer = false
-      @playerClient = nil
-      @gazeboClient = nil
-      @monitoringProcesses = []
-    end
-
-    # opts are:
-    # batch_mode : true/false to launch the graphical output or no
-    # control_iface: 'gazebo' , 'player'
-
-    def startGazebo (command, batch_mode = false)
-
-      if batch_mode #we dont want to display graphical interface
-        gazebo_cmd = "gazebo -r #{command} 2>&1"
-      else
-        gazebo_cmd = "gazebo #{command} 2>&1"
-      end
-
-       # launch gazebo    
-      gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
-      gazeboProcess.run 
-      @monitoringProcesses << gazeboProcess
-
-      puts "Gazebo launched"
-
-      @gazeboClient = Gazeboc::Client.new
-
-      if !gazeboProcess.running?
-        raise "gazebo died"
-      end
-
-      begin 
-        @gazeboClient.Connect 0
-      rescue Exception => e
-        gazeboProcess.kill
-        raise e.message 
-      end
-
-    end
-
-
-    def startPlayer(command)
-      @usingPlayer = true
-      # launch player
-      
-      player_cmd = "player #{command} 2>&1"
-      puts player_cmd
-      playerProcess = ProcessMonitor.new(player_cmd, "player ", "success", "error")
-      playerProcess.run 
-      @monitoringProcesses << playerProcess
-
-      puts "Player launched"
-            
-      @playerClient = Playerc::Playerc_client.new(nil, 'localhost', 6665)
-     
-      retries = 10
-      connected = false
-      while (!connected) and (retries > 0)
-        sleep 1
-        if @playerClient.connect == 0
-          connected = true 
-        end
-      end
-     
-      if !connected
-        error = Playerc::playerc_error_str()
-        cleanup
-        raise error
-      end
-    end 
-    
-
-
-    def running?
-      @monitoringProcesses.inject(true) {|result, process| result and process.running?}
-    end 
-
-    def cleanup
-      @monitoringProcesses.each{ |p| p.kill}
-    end
-
-    def using?(feature)
-      if feature == 'player'
-        return @usingPlayer
-      elsif feature == 'gazebo'
-        return true
-      else
-        return false
-      end
-    end
-
-    def getModel (model_name, default_index=nil)
-      Model.new self, model_name, default_index
-    end
-
-  end
-
-
-
   class Model
     attr_reader :name
     def initialize (connection, name, default_index)
       @connection = connection
       @name = name
       @default_index = default_index
+      puts "default index  " + default_index.to_s
   #    @simIface = Gazeboc::SimulationIface.new 
     end
 
@@ -154,7 +51,7 @@ module RRMi
       raise "dont call this"
     end
     
-   
+
     def positionIface (iface_index = nil)
       PositionIface.new @connection, getIndex( iface_index )
     end
@@ -165,7 +62,7 @@ module RRMi
 
   private 
     def getIndex (iface_index)
-      if iface_index.class? == "String"
+      if iface_index.class == "String"
         index = @name + "::" + name 
       else
         index = iface_index || @default_index
@@ -194,10 +91,11 @@ module RRMi
 
  #TODO: this is TOTALLY broken
     def setRelativePosition ( *args )
-      #player
-      #@_ifacePosition.set_cmd_pose(@position[:x] + meters, @position[:y], @position[:yaw], 1)
-      #check the motors
+
+      #TODO check the motors
       pos = Command2D.new *args
+      @iface.setRelativePosition (pos)
+=begin
       #debugger
       puts pos
       stop # basically dont control with vel and pos, choose!
@@ -210,6 +108,7 @@ module RRMi
         sleep (0.01)
       end
       stop
+=end
     end
 
     # velocity we will use when commanding positions
