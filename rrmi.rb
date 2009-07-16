@@ -18,7 +18,7 @@
 =end
 
 require 'gazeboc'
-require 'playerc'
+
 require 'rubygems'
 require 'ruby-debug'
 require 'forwardable'
@@ -27,9 +27,10 @@ require 'processMonitor'
 require 'rrmi_connections'
 require 'rrmi_common'
 
-
 #Ruby Robotics Middleware 
 module RRMi
+
+#TODO: move this to connections? This makes sense?
 
   class Connection
     attr_reader :gazeboClient, :playerClient
@@ -44,19 +45,18 @@ module RRMi
     # batch_mode : true/false to launch the graphical output or no
     # control_iface: 'gazebo' , 'player'
     def startUnderlyingSoftware(config, popts={})
-      opts = {:batch_mode => false, :control_iface => 'gazebo'}.merge!(popts)
+      opts = {:batch_mode => false}.merge!(popts)
       
-
       if opts[:batch_mode] #we dont want to display graphical interface
-        gazebo_cmd = "gazebo -r #{config['gazebo_world']} 2>&1"
+        gazebo_cmd = "gazebo -r #{config['gazebo_config']} 2>&1"
       else
-        gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
+        gazebo_cmd = "gazebo #{config['gazebo_config']} 2>&1"
       end
-       
-      if opts['control_iface'] == 'player'
-        @usingPlayer = true
-      end
-      
+
+       if config['use_player'] == true
+         @usingPlayer = true
+         require 'playerc'
+       end
 
        # launch gazebo    
       gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
@@ -66,7 +66,6 @@ module RRMi
       puts "Gazebo launched"
 
       @gazeboClient = Gazeboc::Client.new
-  #    @simIface = Gazeboc::SimulationIface.new
 
       if !gazeboProcess.running?
         raise "gazebo died"
@@ -82,6 +81,7 @@ module RRMi
       # launch player
       if @usingPlayer
         player_cmd = "player #{config['player_config']} 2>&1"
+        puts player_cmd
         playerProcess = ProcessMonitor.new(player_cmd, "player ", "success", "error")
         playerProcess.run 
         @monitoringProcesses << playerProcess
@@ -143,7 +143,7 @@ module RRMi
       @simIface = Gazeboc::SimulationIface.new 
     end
 
-    def fiducialID   #TODO: fix the Ruby bindings to make this work
+    def fiducialID  #TODO: fix the Ruby bindings to make this work
       @simIface.Open @connection.gazeboClient, "default"
       @simIface.Lock 1
       #@simIface.GetModelFiducialID @name, id 
@@ -213,8 +213,7 @@ module RRMi
 
 
     def setVelocity (*args)
-      vel = Command2D.new *args
-      @iface.setVel vel    
+      @iface.setVel Command2D.new *args
     end
     
     #TODO: this is a global position?

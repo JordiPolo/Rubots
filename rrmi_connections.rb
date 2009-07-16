@@ -30,14 +30,18 @@ require 'rrmi_common'
 #Ruby Robotics Middleware 
 module RRMi
 
-#common to all the Ifaces
+
+# common to all the Ifaces
+# Connection classes knows how to connect to the different backends and will only accept 
+# RRMI like params so, it is a backend to RRMI layer
+# the classes without the connection names are mean to interact with the non RRMI world
   module IfaceConnection
     def init
       @usingPlayer = false
       @iface = nil
       if @connection.using? 'player'
         @usingPlayer = true
-        @ifaceNumber = @name.split('::')[0][-1,1] #last character before ::
+        @ifaceNumber = @name.split('::')[0][-1,1].to_i #last character before ::
       end
     end
 
@@ -104,7 +108,7 @@ module RRMi
 
     def setVel (vel)
       if @usingPlayer
-        @iface.set_cmd_vel(vel.x, vel.y, toRad( vel.yaw ))
+        @iface.set_cmd_vel(vel.x, vel.y, toRad( vel.yaw ),1)
       else
         with_lock do
           @iface.data.cmdVelocity.pos.x = vel.x
@@ -117,7 +121,7 @@ module RRMi
     def getPosition
       
       if @usingPlayer
-        @connection.read #this is needed?
+        @connection.playerClient.read #this is needed?
         my_pos = Command2D.new( @iface.px, @iface.py, @iface.pa ) 
       else
         with_lock do

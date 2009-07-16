@@ -7,9 +7,14 @@ RRMi depends on
 Gazebo SVN
 Gazebo Ruby bindings
 
+optionally:
+Player SVN
+Player ruby bindings
+
+
 Rubots depends only on RRMi and YAML
 
-To get Gazebo and its Ruby bindings:
+To get Gazebo, Player and their Ruby bindings:
 
 1.- svn:
 Instructions here:

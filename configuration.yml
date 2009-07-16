@@ -1,5 +1,6 @@
-gazebo_world: pioneer2dx.world 
-player_world: player.cfg
+use_player: true
+gazebo_config: pioneer2dx.world 
+player_config: player.cfg
 Robots:
 - pioneer2dx_model1
 - pioneer2dx_model2
