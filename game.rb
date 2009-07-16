@@ -56,9 +56,9 @@ module Rubots
      session = YAML::load(File.open(session_file))
 
      @conn = RRMi::Connection.new
-     @conn.startUnderlyingSoftware( config, true )
+     @conn.startUnderlyingSoftware( config, {:batch_mode => true} )
 
-     Signal.trap(0, proc { puts "Terminating: #{$$}, killing Gazebo"; cleanup })
+     Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
 
       
       #WARNING: we assume here an order in the files. TODO

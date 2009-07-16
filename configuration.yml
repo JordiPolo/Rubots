@@ -1,4 +1,5 @@
 gazebo_world: pioneer2dx.world 
+player_world: player.cfg
 Robots:
 - pioneer2dx_model1
 - pioneer2dx_model2

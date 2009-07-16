@@ -1,7 +1,7 @@
 require 'gazeboc'
 require 'rubygems'
 require 'ruby-debug'
-
+require 'forwardable'
 
 require 'processMonitor'
 
@@ -44,47 +44,100 @@ module RRMi
 
 
   class Connection
-    def startUnderlyingSoftware(config, batch_mode=false)
+    attr_reader :gazeboClient, :playerClient
+    # opts are:
+    # batch_mode : true/false to launch the graphical output or no
+    # control_iface: 'gazebo' , 'player'
+    def startUnderlyingSoftware(config, popts={})
+      opts = {:batch_mode => false, :control_iface => 'gazebo'}.merge!(popts)
       
-      if batch_mode #we dont want to display graphical interface
+      @usingPlayer = false
+      @playerClient = nil
+
+      @monitoringProcesses = []
+
+      if opts[:batch_mode] #we dont want to display graphical interface
         gazebo_cmd = "gazebo -r #{config['gazebo_world']} 2>&1"
       else
         gazebo_cmd = "gazebo #{config['gazebo_world']} 2>&1"
       end
+       
+      if opts['control_iface'] == 'player'
+        @usingPlayer = true
+      end
+      
 
        # launch gazebo    
-       @gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
-       @gazeboProcess.run 
+      gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
+      gazeboProcess.run 
+      @monitoringProcesses << gazeboProcess
 
-       puts "Gazebo launched"
-   
-       @client = Gazeboc::Client.new
-       @simIface = Gazeboc::SimulationIface.new
+      puts "Gazebo launched"
 
-       if !@gazeboProcess.running?
-         raise "gazebo died"
-       end
+      @gazeboClient = Gazeboc::Client.new
+  #    @simIface = Gazeboc::SimulationIface.new
+
+      if !gazeboProcess.running?
+        raise "gazebo died"
+      end
 
       begin 
-        @client.Connect 0
+        @gazeboClient.Connect 0
       rescue Exception => e
-        @gazeboProcess.kill
+        gazeboProcess.kill
         raise e.message 
       end
+
+      # launch player
+      if @usingPlayer
+        player_cmd = "player #{config['player_config']} 2>&1"
+        playerProcess = ProcessMonitor.new(player_cmd, "player ", "success", "error")
+        playerProcess.run 
+        @monitoringProcesses << playerProcess
+
+        puts "Player launched"
+            
+        @playerClient = Playerc::Playerc_client.new(nil, 'localhost', 6665)
+     
+        retries = 10
+        connected = false
+        while (!connected) and (retries > 0)
+          sleep 1
+          if @playerClient.connect == 0
+            connected = true 
+          end
+        end
+     
+        if !connected
+          error = Playerc::playerc_error_str()
+          cleanup
+          raise error
+        end
+      end #using player
     
     end
 
 
     def running?
-      @gazeboProcess.running?
+      @monitoringProcesses.inject(true) {|result, process| result and process.running?}
     end 
 
     def cleanup
-      @gazeboProcess.kill 
+      @monitoringProcesses.each{ |p| p.kill}
+    end
+
+    def using?(feature)
+      if feature == 'player'
+        return @usingPlayer
+      elsif feature == 'gazebo'
+        return true
+      else
+        return false
+      end
     end
 
     def getModel (model_name)
-      Model.new @client, model_name
+      Model.new self, model_name
     end
 
   end
@@ -93,28 +146,30 @@ module RRMi
 
   class Model
     attr_reader :name
-    def initialize (client, name)
-      @client = client
+    def initialize (connection, name)
+      @connection = connection
       @name = name
       @simIface = Gazeboc::SimulationIface.new 
     end
 
     def fiducialID   #TODO: fix the Ruby bindings to make this work
-      @simIface.Open @client, "default"
+      @simIface.Open @connection.gazeboClient, "default"
       @simIface.Lock 1
-      @simIface.GetModelFiducialID @name, id 
+      #@simIface.GetModelFiducialID @name, id 
       @simIface.Unlock
       @simIface.Close #TODO:is this safe?  Or I close other instances?
-      return id
+      #return id
+      raise "dont call this"
     end
 
     def positionIface (name)
       iface_name = @name + "::" + name 
-      iface = PositionIface.new @client, iface_name
+      iface = PositionIface.new @connection, iface_name
     end
+
     def fiducialIface (name)
       iface_name = @name + "::" + name 
-      iface = FiducialIface.new @client, iface_name
+      iface = FiducialIface.new @connection, iface_name
       #Playerc::Playerc_fiducial.new(@_connection, interface_index)
       #if @_iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
       #  raise  Playerc::playerc_error_str()
@@ -122,38 +177,134 @@ module RRMi
     end
   end
 
-  class FiducialIface
-    def initialize (client, fullname)
-      @client = client
-      @name = fullname
-      @iface = Gazeboc::FiducialIface.new
+  module IfaceConnection
+    def init
+      @usingPlayer = false
+      @iface = nil
+      if @connection.using? 'player'
+        @usingPlayer = true
+        @ifaceNumber = @name.split('::')[0][-1,1] #last character before ::
+      end
     end
 
     def open
-      @iface.Open  @client, @name
+      if @usingPlayer
+        if @iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
+          raise  Playerc::playerc_error_str()
+        end
+      else
+        @iface.Open  @connection.gazeboClient, @name
+      end
     end
 
     def cleanup
-      @iface.Close
+      if @usingPlayer
+        @iface.unsubscribe
+      else
+        @iface.Close
+      end
+    end
+
+    def with_lock(&block)
+      @iface.Lock 1
+      yield
+      @iface.Unlock
+    end
+  end
+
+  class FiducialIfaceConnection
+    include IfaceConnection
+    def initialize (connection, fullname)
+      @connection = connection
+      @name = fullname
+      init
+      if @usingPlayer
+         @iface = Playerc::Playerc_fiducial.new(@connection.playerClient, @ifaceNumber)
+      else
+        @iface = Gazeboc::FiducialIface.new
+      end
+    end
+
+  end
+
+
+  class FiducialIface
+    def initialize (client, fullname)
+#      @client = client
+#      @name = fullname
+      @iface = FiducialIfaceConnection.new client, fullname
+    end
+
+    def open
+      @iface.open 
+    end
+
+    def cleanup
+      @iface.cleanup
+    end
+
+  end
+
+
+  class PositionIfaceConnection
+    include IfaceConnection
+
+    def initialize (connection, fullname)
+      @connection = connection
+      @name = fullname
+      init
+      if @usingPlayer
+         @iface = Playerc::Playerc_position2d.new(@connection.playerClient, @ifaceNumber)
+      else
+        @iface = Gazeboc::PositionIface.new
+      end
+    end
+
+    def setVel (vel)
+      if @usingPlayer
+        @iface.set_cmd_vel(vel.x, vel.y, toRad( vel.yaw ))
+      else
+        with_lock do
+          @iface.data.cmdVelocity.pos.x = vel.x
+          @iface.data.cmdVelocity.pos.y = vel.y
+          @iface.data.cmdVelocity.yaw = vel.yaw #TODO:this is rad or degrees?
+        end
+      end
+    end
+
+    def getPosition
+      
+      if @usingPlayer
+        @connection.read #this is needed?
+        my_pos = Command2D.new( @iface.px, @iface.py, @iface.pa ) 
+      else
+        with_lock do
+          pose = @iface.data.pose
+          my_pos = Command2D.new(pose.pos.x, pose.pos.y, pose.yaw)
+          return my_pos
+        end 
+      end
+    end
+
+  private
+
+    def toRad (degrees)
+      rad = degrees * Math::PI / 180.0
+      rad
     end
 
   end
 
 
   class PositionIface
+    extend Forwardable
+    def_delegators :@iface, :open, :cleanup
+
     def initialize (client, fullname)
       @client = client
       @name = fullname
-      @iface = Gazeboc::PositionIface.new
+      @iface = PositionIfaceConnection.new client, fullname
       @default_vel = Command2D.new( 10,10,1 ) #random numbers, just to make it move if the user provide no defaults
-    end
-
-    def open
-      @iface.Open  @client, @name
-    end
-
-    def cleanup
-      @iface.Close
     end
 
  #TODO: this is TOTALLY broken
@@ -186,21 +337,13 @@ module RRMi
       #player
       #@iface.set_cmd_vel(@forwardSpeed, 0.0, toRad( @turningSpeed ), 1)
       vel = Command2D.new *args
-      with_lock do
-        @iface.data.cmdVelocity.pos.x = vel.x
-        @iface.data.cmdVelocity.pos.y = vel.y
-        @iface.data.cmdVelocity.yaw = vel.yaw #TODO:this is rad or degrees?
-      end
-      
+      @iface.setVel vel    
     end
     
     #TODO: this is a global position?
     def getPosition
       my_pos = Command2D.new( 0, 0, 0 )
-      with_lock do
-        pose = @iface.data.pose
-        my_pos = Command2D.new(pose.pos.x, pose.pos.y, pose.yaw)
-      end 
+      my_pos = @iface.getPosition
       return my_pos
     end
 
@@ -209,16 +352,6 @@ module RRMi
     end
 
    private
-    def with_lock(&block)
-      @iface.Lock 1
-      yield
-      @iface.Unlock
-    end
-
-    def toRad (degrees)
-      rad = degrees * Math::PI / 180.0
-      rad
-    end
 
     
     def alingVelPos( vel, pos )

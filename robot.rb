@@ -110,7 +110,8 @@ module Rubots
  
     #  @radar._init(connection)     
       @gun._init(connection)
-      @fiducialId = connection.fiducialID
+#TODO: fiducial ID
+#      @fiducialId = connection.fiducialID
       @radar.add_observer self  #interested in radar events
     end
     
