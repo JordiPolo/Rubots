@@ -56,7 +56,12 @@ module Rubots
      session = YAML::load(File.open(session_file))
 
      @conn = RRMi::Connection.new
-     @conn.startUnderlyingSoftware( config, {:batch_mode => true} )
+     @conn.startGazebo( config['gazebo_config'], true )
+
+     if config['use_player']
+       @conn.startPlayer( config['player_config'] )
+     end
+
 
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
 
@@ -64,14 +69,14 @@ module Rubots
       #WARNING: we assume here an order in the files. TODO
       #We assume that the config, the world and the session file has the same order
       #and based on the same numbers
-      # robot_count = 0
+      # each robot in the player config file will have 10 slots of interfaces
+      # 0 , 10, 20 , 30 as defaults. 
      session['Robots'].each_with_index do |robot_file, robot_count|
        robot = load_robot(robot_file)
        robot_name = config['Robots'][robot_count] 
        puts "robot name " + robot_name
-       robot_model = RobotConnection.new( @conn.getModel(robot_name))
-       robot._init( robot_model ) # 0, 2, 4
-      # robot_count += 1 
+       robot_model = @conn.getModel(robot_name, robot_count * 10)
+       robot._init( robot_model ) 
      end
 
   end

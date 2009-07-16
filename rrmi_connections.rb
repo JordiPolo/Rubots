@@ -41,7 +41,6 @@ module RRMi
       @iface = nil
       if @connection.using? 'player'
         @usingPlayer = true
-        @ifaceNumber = @name.split('::')[0][-1,1].to_i #last character before ::
       end
     end
 
@@ -70,14 +69,16 @@ module RRMi
     end
   end
 
-
+    
 #connection to the fiducial Iface
   class FiducialIfaceConnection
     include IfaceConnection
-    def initialize (connection, fullname)
+    def initialize (connection, index)
       @connection = connection
-      @name = fullname
       init
+      @ifaceNumber = index 
+      @name = index
+#        @ifaceNumber = @name.split('::')[0][-1,1].to_i #last character before ::
       if @usingPlayer
          @iface = Playerc::Playerc_fiducial.new(@connection.playerClient, @ifaceNumber)
       else
@@ -95,9 +96,10 @@ module RRMi
   class PositionIfaceConnection
     include IfaceConnection
 
-    def initialize (connection, fullname)
+    def initialize (connection, index)
       @connection = connection
-      @name = fullname
+      @ifaceNumber = index
+      @name = index
       init
       if @usingPlayer
          @iface = Playerc::Playerc_position2d.new(@connection.playerClient, @ifaceNumber)
@@ -118,8 +120,9 @@ module RRMi
       end
     end
 
+    #TODO: this is a global position?
     def getPosition
-      
+      my_pos = nil
       if @usingPlayer
         @connection.playerClient.read #this is needed?
         my_pos = Command2D.new( @iface.px, @iface.py, @iface.pa ) 
@@ -127,9 +130,9 @@ module RRMi
         with_lock do
           pose = @iface.data.pose
           my_pos = Command2D.new(pose.pos.x, pose.pos.y, pose.yaw)
-          return my_pos
         end 
       end
+      return my_pos
     end
 
   private

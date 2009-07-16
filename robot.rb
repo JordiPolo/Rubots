@@ -27,22 +27,6 @@ require 'rules'
 
 module Rubots
 
-  class RobotConnection
-
-    def initialize (model)
-      @model = model
-    end
-    def name
-      @model.name      
-    end
-    def fiducialID
-      @model.fiducialID
-    end
-    def positionIface 
-      name = "position_iface_0" 
-      @model.positionIface name
-    end
-  end
 
   module Tools
     def normalize (data, limit, real_limit)
