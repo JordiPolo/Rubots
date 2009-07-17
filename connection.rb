@@ -91,7 +91,7 @@ module RRMi
       puts "Player launched"
             
       @playerClient = Playerc::Playerc_client.new(nil, 'localhost', 6665)
-     
+      
       retries = 6
       connected = false
       while (!connected) and (retries > 0)

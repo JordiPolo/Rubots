@@ -42,7 +42,7 @@ module Rubots
      @running = false
    end
 
-   def init
+   def init (batch_mode)
      #read configuration 
      config_file = "configuration.yml"
      session_file = "session.yml"
@@ -58,7 +58,7 @@ module Rubots
      session = YAML::load(File.open(session_file))
 
      @conn = RRMi::Connection.new
-     @conn.startGazebo( config['gazebo_config'], true )
+     @conn.startGazebo( config['gazebo_config'], batch_mode )
 
      if config['use_player']
        @conn.startPlayer( config['player_config'] )
@@ -79,7 +79,7 @@ module Rubots
        robot_model = @conn.getModel(robot_name, robot_count * 10)
        robot._init( robot_model ) 
      end
-
+     p @conn.playerClient.class, @conn.playerClient.public_methods(false).sort
   end
 
   def mainLoop

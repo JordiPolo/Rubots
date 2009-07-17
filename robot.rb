@@ -86,10 +86,8 @@ module Rubots
 
     def _init (model)
    
-   #   @_model = model
-      @_ifacePosition = model.positionIface 
       @name = model.name
-      @_ifacePosition.open 
+      @_ifacePosition = model.positionIface 
       @_ifacePosition.setDefaultVelocity( Rules::MAX_VELOCITY, Rules::MAX_VELOCITY, Rules::MAX_TURN_RATE)
  
     #  @radar._init(connection)     
