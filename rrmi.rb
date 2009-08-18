@@ -45,9 +45,8 @@ module RRMi
     end
 
     def open
-      puts "opening interface" 
+
       if @usingPlayer
-        puts "using player"
         if @iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
           raise  Playerc::playerc_error_str()
         end
