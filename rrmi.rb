@@ -86,11 +86,15 @@ module RRMi
   end
 
 
+  
   class PositionIface
+    attr_reader :current_velocity
+    
     include IfaceConnection
     def initialize (connection, index)
       init connection, index
       
+      @current_velocity = Command2D.new(0,0,0)
       @default_vel = Command2D.new( 10,10,1 ) #random numbers, just to make it move if the user provide no defaults
       if @usingPlayer
 puts "opening " + @ifaceNumber.to_s
@@ -139,7 +143,6 @@ puts "opening " + @ifaceNumber.to_s
     end
 
     def setVelocity (*args)
-      
       setVel Command2D.new *args
     end
     
@@ -172,6 +175,7 @@ puts "opening " + @ifaceNumber.to_s
 
 
     def setVel (vel)
+      @current_velocity = vel
       puts "new velocity ", vel
       if @iface.get_geom != 0
         raise Playerc::playerc_error_str()

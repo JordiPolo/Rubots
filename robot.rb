@@ -22,6 +22,7 @@ require 'rubygems'
 require 'ruby-debug'
 require 'radar'
 require 'rules'
+require 'fluentforwardable'
 #require 'gun'
 
 
@@ -69,10 +70,14 @@ module Rubots
 
 
   class Robot
+    extend Forwardable
     attr_reader :gun, :radar
-    attr_reader :forwardSpeed, :turningSpeed
+    #attr_reader :forwardSpeed, :turningSpeed
     attr_reader :name, :energy, :fiducialId
+    
+    delegate_reader(:forwardSpeed).as(:current_velocity).to(:_ifacePosition)
 
+    
     def initialize
       @gun = Gun.new
       @radar = Radar.new
