@@ -31,46 +31,6 @@ require 'rrmi_common'
 #Ruby Robotics Middleware 
 module RRMi
 
-=begin
-  module IfaceConnection
-    def init (connection, index)
-      @usingPlayer = false
-      @iface = nil
-      @ifaceNumber = index 
-      @name = index
-      @connection = connection
-      if @connection.using? 'player'
-        @usingPlayer = true
-      end
-    end
-
-    def open
-
-      if @usingPlayer
-        if @iface.subscribe(Playerc::PLAYER_OPEN_MODE) != 0
-          raise  Playerc::playerc_error_str()
-        end
-      else
-        @iface.Open  @connection.gazeboClient, @name #if fail, exception
-      end
-    end
-
-    def cleanup
-      if @usingPlayer
-        @iface.unsubscribe
-      else
-        @iface.Close
-      end
-    end
-
-    def with_lock(&block)
-      @iface.Lock 1
-      yield
-      @iface.Unlock
-    end
-  end
-=end
-
 
   class FiducialIface
     def initialize (index)
@@ -138,26 +98,5 @@ module RRMi
       rad = degrees * Math::PI / 180.0
       rad
     end
-
-=begin   
-    def alingVelPos( vel, pos )
-    #  ['x', 'y', 'yaw'].each do |param|      
-      final_vel = vel
-      [:x, :y, :yaw].each do |cmd|
-        if (pos.send(cmd) < 0) and (vel.send(cmd) > 0) or 
-           (pos.send(cmd) > 0) and (vel.send(cmd) < 0)
-          if cmd == :x 
-            final_vel.x = -final_vel.x 
-          elsif cmd == :y 
-            final_vel.y = -final_vel.y 
-          elsif cmd == :yaw 
-            final_vel.yaw = -final_vel.yaw 
-          end          
-        end
-      end
-      return final_vel
-    end
-
-=end    
   end
 end
