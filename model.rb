@@ -44,21 +44,18 @@ module RRMi
     
     
     def positionIface (iface_index = nil)
-      PositionIface.new @connection, getIndex( iface_index )
+      PositionIface.new  getIndex( iface_index )
     end
 
     def fiducialIface (iface_index = nil)
-      FiducialIface.new @connection, getIndex( iface_index )
+      FiducialIface.new  getIndex( iface_index )
     end
     
-    def method_missing(m, *args)
-      
-    end
     
   private 
     def getIndex (iface_index)
       if iface_index.class == "String"
-        index = @name + "::" + name 
+        index = @name + "::" + iface_index
       else
         index = iface_index || @default_index
       end

@@ -49,9 +49,12 @@ class TestRobot < Rubots::Robot
 #      forward 10
       sleep 10
       position2 = worldPosition
+      p "pos1 ", initial_position
+      p "pos2", position2
       if (initial_position == position2)
         raise "we are not moving"
       end
+      
       stop 
       sleep 10
       puts "moving backwards"

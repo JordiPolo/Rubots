@@ -75,11 +75,13 @@ module Rubots
       # 0 , 10, 20 , 30 as defaults. 
      session['Robots'].each_with_index do |robot_file, robot_count|
        robot = load_robot(robot_file)
-       robot_name = config['Robots'][robot_count] 
-       robot_model = @conn.getModel(robot_name, robot_count * 10)
-       robot._init( robot_model ) 
+       robot_name = config['Robots'][robot_count]  #this allows the robot names in the world be arbitrary, surely we dont need this.
+       robot_model = @conn.createModel(robot_name, robot_count * 10)
+       p "cimble"
+       robot._attach_model( robot_model ) 
+       
      end
-     p @conn.playerClient.class, @conn.playerClient.public_methods(false).sort
+     
   end
 
   def mainLoop
@@ -162,7 +164,9 @@ module Rubots
     @robots.each do  |r| 
       r._cleanup  #game internal cleanup of robots
     end
-    @conn.cleanup
+    if not @conn.nil?
+      @conn.cleanup
+    end
     Qt::Application.instance.quit
   end
  

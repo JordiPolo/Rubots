@@ -89,12 +89,13 @@ module Rubots
       @energy = Rules::LIFE
     end
 
-    def _init (model)
-   
+    def _attach_model (model)
+
       @name = model.name
       @_ifacePosition = model.positionIface 
-      @_ifacePosition.setDefaultVelocity( Rules::MAX_VELOCITY, Rules::MAX_VELOCITY, Rules::MAX_TURN_RATE)
+      @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
  
+      
     #  @radar._init(connection)     
       @gun._init(model)
 #TODO: fiducial ID
@@ -108,7 +109,6 @@ module Rubots
     end
 
     def _cleanup 
-      @_ifacePosition.cleanup
    #   @radar._cleanup
       @gun._cleanup
     end 
@@ -157,16 +157,16 @@ module Rubots
     ##############################
     #speed
     def setForwardSpeed(speed)
-        puts "robot speed " + speed.to_s
-       @forwardSpeed = normalize(speed, Rules::MAX_API_VELOCITY, Rules::MAX_VELOCITY)  
-       @_ifacePosition.setVelocity(@forwardSpeed, 0.0, @turningSpeed)
+       puts "robot speed " + speed.to_s
+       forwardSpeed = normalize(speed, Rules::MAX_API_VELOCITY, Rules::MAX_VELOCITY)  
+       @_ifacePosition.setVelocity :x => forwardSpeed
 
     end
 
     def setTurningSpeed (degrees)
        puts "robot turning " + degrees.to_s 
-       @turningSpeed = normalize(degrees, Rules::MAX_API_TURN_RATE, Rules::MAX_TURN_RATE)  
-       @_ifacePosition.setVelocity(@forwardSpeed, 0.0, @turningSpeed )
+       turningSpeed = normalize(degrees, Rules::MAX_API_TURN_RATE, Rules::MAX_TURN_RATE)  
+       @_ifacePosition.setVelocity :yaw => turningSpeed
     end 
 
     def setSpeed (speed, angle)
@@ -176,10 +176,11 @@ module Rubots
     end
 
     def stop 
-      setSpeed 0,0
+      @_ifacePosition.stop
     end
 
     # movement
+=begin
     def forward (meters)
       @_ifacePosition.setRelativePosition( meters, 0, 0 )
     end
@@ -194,7 +195,7 @@ module Rubots
       turn( degrees - pos.yaw )
     end
 
-
+=end
     def worldPosition
       @_ifacePosition.getPosition 
     end 

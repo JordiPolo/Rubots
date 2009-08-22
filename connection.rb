@@ -17,8 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-require 'gazeboc'
-require 'playerc'
+require 'playercpp'
 
 require 'rubygems'
 require 'ruby-debug'
@@ -35,11 +34,9 @@ require 'model'
 module RRMi
 
   class Connection
-    attr_reader :gazeboClient, :playerClient
+  
     def initialize
-      @usingPlayer = false
       @playerClient = nil
-      @gazeboClient = nil
       @monitoringProcesses = []
     end
 
@@ -62,25 +59,23 @@ module RRMi
 
       puts "Gazebo launched"
 
-      @gazeboClient = Gazeboc::Client.new
+#      @gazeboClient = Gazeboc::Client.new
 
       if !gazeboProcess.running?
         raise "gazebo died"
       end
-
+=begin
       begin 
         @gazeboClient.Connect 0
       rescue Exception => e
         gazeboProcess.kill
         raise e.message 
       end
-
+=end
     end
 
 
     def startPlayer(command)
-      @usingPlayer = true
-      # launch player
       
       player_cmd = "player #{command} 2>&1"
       puts player_cmd
@@ -89,9 +84,10 @@ module RRMi
       @monitoringProcesses << playerProcess
 
       puts "Player launched"
-            
-      @playerClient = Playerc::Playerc_client.new(nil, 'localhost', 6665)
+      sleep 1      
+      $playerClient = Playercpp::PlayerClient.new('localhost')
       
+=begin      
       retries = 6
       connected = false
       while (!connected) and (retries > 0)
@@ -107,13 +103,14 @@ module RRMi
         cleanup
         raise error
       end
+=end
     end 
     
 
     def update  
-      while @playerClient.data_requested == 1
-        @playerClient.read
-      end
+#      while @playerClient.data_requested == 1
+#        @playerClient.Read
+#      end
     end
 
     # if all the processes are running
@@ -125,7 +122,7 @@ module RRMi
     def cleanup
       @monitoringProcesses.each{ |p| p.kill}
     end
-    
+=begin
     def using?(feature)
       if feature == 'player'
         return @usingPlayer
@@ -135,9 +132,9 @@ module RRMi
         return false
       end
     end
- 
+=end
     #create a new model of this connection with this name and index
-    def getModel (model_name, default_index=nil)
+    def createModel (model_name, default_index=nil)
       Model.new self, model_name, default_index
     end
 
