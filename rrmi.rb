@@ -17,16 +17,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-require 'gazeboc'
-require 'playerc'
 
 require 'rubygems'
 require 'ruby-debug'
 require 'forwardable'
 
-require 'processMonitor'
 require 'connection'
-require 'rrmi_common'
+
 
 #Ruby Robotics Middleware 
 module RRMi
@@ -40,7 +37,7 @@ module RRMi
 
   class FiducialIface
     def initialize (index)
-      @iface = Playercpp::FiducialProxy.new($playerClient, index)
+      @iface = Playercpp::FiducialProxy.new($connection.player, index)
     end
     
     def dataAvailable
@@ -48,7 +45,7 @@ module RRMi
     end
     
     def find_object
-      $playerClient.Read
+  #    $connection.player.Read
       for i in 1..@iface.GetCount do
          f = @iface.GetFiducialItem(i-1)
          p f.public_methods(false)
@@ -74,8 +71,8 @@ module RRMi
       
       @current_velocity = { :x => 0, :y => 0, :yaw => 0}
       @default_vel = { :x =>10, :y => 10, :yaw =>1 } #random numbers, just to make it move if the user provide no defaults
-      @iface = Playercpp::Position2dProxy.new($playerClient, index)
-      @iface_sim = Playercpp::SimulationProxy.new($playerClient, 0)
+         
+      @iface = Playercpp::Position2dProxy.new($connection.player, index)
       
     end
 
@@ -103,7 +100,7 @@ module RRMi
 =end
   #TODO: this is a global position?
     def getPosition
-      @iface_sim.GetPose2d("pioneer2dx_model1")
+      $connection.simulation.GetPose2d("pioneer2dx_model1")
     end
 
     def setPosition (*args)

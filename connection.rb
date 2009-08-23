@@ -18,15 +18,6 @@
 =end
 
 require 'playercpp'
-
-require 'rubygems'
-require 'ruby-debug'
-
-require 'forwardable'
-
-require 'processMonitor'
-require 'rrmi_common'
-require 'rrmi'
 require 'model'
 
 
@@ -34,96 +25,34 @@ require 'model'
 module RRMi
 
   class Connection
-  
+    attr_reader :player, :simulator
     def initialize
-      @playerClient = nil
-      @monitoringProcesses = []
+      @simIface = nil
     end
-
-    # opts are:
-    # batch_mode : true/false to launch the graphical output or no
-    # control_iface: 'gazebo' , 'player'
-
-    def startGazebo (command, batch_mode = false)
-
-      if batch_mode #we dont want to display graphical interface
-        gazebo_cmd = "gazebo -r #{command} 2>&1"
-      else
-        gazebo_cmd = "gazebo #{command} 2>&1"
-      end
-
-       # launch gazebo    
-      gazeboProcess = ProcessMonitor.new(gazebo_cmd, "gazebo", "successfully", "Exception")
-      gazeboProcess.run 
-      @monitoringProcesses << gazeboProcess
-
-      puts "Gazebo launched"
-
-#      @gazeboClient = Gazeboc::Client.new
-
-      if !gazeboProcess.running?
-        raise "gazebo died"
-      end
-=begin
-      begin 
-        @gazeboClient.Connect 0
-      rescue Exception => e
-        gazeboProcess.kill
-        raise e.message 
-      end
-=end
-    end
-
-
-    def startPlayer(command)
-      
-      player_cmd = "player #{command} 2>&1"
-      puts player_cmd
-      playerProcess = ProcessMonitor.new(player_cmd, "player ", "success", "error")
-      playerProcess.run 
-      @monitoringProcesses << playerProcess
-
-      puts "Launching player"
-
-      retries = 6
-      connected = false
-      while (!connected) and (retries > 0)
-        sleep 1
-        begin
-          $playerClient = Playercpp::PlayerClient.new('localhost')
-        rescue 
-          retries -= 1
-        else
-          connected = true
-        end
-      end  
-      if !connected
-        cleanup
-        raise "we were not able to launch Player"
-      end
-        
-    end 
     
-
-    def update  
-      if $playerClient.Peek(0)
-        $playerClient.Read
+    def connect  
+      @player = Playercpp::PlayerClient.new('localhost')
+    end
+    
+    def simulation
+      if @simIface.nil?
+        @simIface= Playercpp::SimulationProxy.new(@player, 0)
+      end
+      @simIface
+    end
+    
+    def update
+      if @player.Peek(0)
+        @player.Read
       end
     end
-
-    # if all the processes are running
-    def running? 
-      @monitoringProcesses.inject(true) {|result, process| result and process.running?}
-    end 
-
-    # cleanup all the processes
-    def cleanup
-      @monitoringProcesses.each{ |p| p.kill}
-    end
+    
     #create a new model of this connection with this name and index
     def createModel (model_name, default_index=nil)
-      Model.new self, model_name, default_index
+      Model.new model_name, default_index
     end
 
   end
+  
+  
 end

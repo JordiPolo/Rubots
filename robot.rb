@@ -94,8 +94,6 @@ module Rubots
       @name = model.name
       @_ifacePosition = model.positionIface 
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
- 
-      
       @radar._init(model)     
       @gun._init(model)
 #TODO: fiducial ID

@@ -17,18 +17,20 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-
+require 'rrmi'
 
 #Ruby Robotics Middleware 
 module RRMi
 
   class Model
     attr_reader :name
-    def initialize (connection, name, default_index)
-      @connection = connection
+    def initialize ( name, default_index)
       @name = name
       @default_index = default_index
-      puts "default index  " + default_index.to_s
+      #puts "default index  " + default_index.to_s
+      
+      #nose = $connection.simulation.GetProperty(name, "fiducial_id", 10)
+      #p nose
   #    @simIface = Gazeboc::SimulationIface.new 
     end
 

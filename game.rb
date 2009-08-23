@@ -23,8 +23,8 @@ require 'ruby-debug'
 require 'yaml'
 require 'Qt'
 
-
-require 'connection' #rrmi
+require 'connection' 
+require 'underlyingSoftware' 
 require 'robot' 
 
 
@@ -40,6 +40,7 @@ module Rubots
      @robots = []
      @threads = []
      @running = false
+     $connection = RRMi::Connection.new
    end
 
    def init (batch_mode)
@@ -57,11 +58,11 @@ module Rubots
      config = YAML::load(File.open(config_file))
      session = YAML::load(File.open(session_file))
 
-     @conn = RRMi::Connection.new
-     @conn.startGazebo( config['gazebo_config'], batch_mode )
+     @software = RRMi::UnderlyingSoftware.new
+     @software.startGazebo( config['gazebo_config'], batch_mode )
 
      if config['use_player']
-       @conn.startPlayer( config['player_config'] )
+       @software.startPlayer( config['player_config'] )
      end
 
 
@@ -76,8 +77,7 @@ module Rubots
      session['Robots'].each_with_index do |robot_file, robot_count|
        robot = load_robot(robot_file)
        robot_name = config['Robots'][robot_count]  #this allows the robot names in the world be arbitrary, surely we dont need this.
-       robot_model = @conn.createModel(robot_name, robot_count * 10)
-       p "cimble"
+       robot_model = $connection.createModel(robot_name, robot_count * 10)
        robot._attach_model( robot_model ) 
        
      end
@@ -122,9 +122,9 @@ module Rubots
 
   slots :update
   def update
-      @conn.update 
+      $connection.update 
       @robots.each { |r|  r._run } 
-      @running = @running and @conn.running? 
+      @running = @running and @software.running? 
       if !@running
         @updateTimer.stop
         @threads.each { |aThread|  aThread.kill; aThread.join }
@@ -164,8 +164,8 @@ module Rubots
     @robots.each do  |r| 
       r._cleanup  #game internal cleanup of robots
     end
-    if not @conn.nil?
-      @conn.cleanup
+    if not @software.nil?
+      @software.cleanup
     end
     Qt::Application.instance.quit
   end
