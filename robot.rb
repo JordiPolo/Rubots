@@ -49,17 +49,23 @@ module Rubots
     def initialize
       @bullets = Rules::BULLETS
     end
-    def _init (connection)
+    def _init(model)
+      @_iface = model.cannonIface 
     end
     def _cleanup
     end
-
+    
+    def turn (degrees)
+      @_iface.turn degrees
+    end
+    
     def fire (number = 1)
-      puts "fired #{number} bullets"
       if @bullets < number 
         number = @bullets
       end
       @bullets -= number
+      puts "fired #{number} bullets"
+      @_iface.shoot(number)
     end
 
    private
@@ -130,16 +136,18 @@ module Rubots
 
     #when a robot is scanned
     def onScannedObject (object)
-      puts "object found"
+      puts "object found "  + object.id.to_s
     end
     #when anything else is scanned
     def onScannedRobot (robot)
+      puts "robot found"
+      puts "robot found"
+      puts "robot found"
       puts "robot found"
     end
 
     #translate observed events to method name and execute them
     def update (event, object)
-      event[0].capitalize! 
       method_name = "on" + event
       eval (method_name + " object")        
     end

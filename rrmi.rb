@@ -28,6 +28,24 @@ require 'connection'
 #Ruby Robotics Middleware 
 module RRMi
 
+  class CannonIface
+    def initialize (index)
+      @iface = Playercpp::PTZProxy.new($connection.player, index)
+      @iface.SetControlMode(PlayerCc::PLAYER_PTZ_POSITION_CONTROL)
+      @pan = 0
+      
+    end    
+    
+    def turn (degrees)
+      @pan = degrees
+      @iface.SetCam( degrees, 0, 0 )  
+    end
+    
+    def shoot (number)
+      @iface.SetCam( @pan, 0, number )
+    end
+  end
+  
   #TODO: x, y  and distance are redundant, choose!
   #type, info are placeholders for the upper layer
   class ScannedObject
@@ -37,6 +55,7 @@ module RRMi
 
   class FiducialIface
     def initialize (index)
+      puts "index " + index.to_s
       @iface = Playercpp::FiducialProxy.new($connection.player, index)
     end
     
@@ -66,7 +85,7 @@ module RRMi
   class PositionIface
     attr_reader :current_velocity
     def initialize (index)
-      
+      puts "index " + index.to_s
       @current_velocity = { :x => 0, :y => 0, :yaw => 0}
       @default_vel = { :x =>10, :y => 10, :yaw =>1 } #random numbers, just to make it move if the user provide no defaults
          

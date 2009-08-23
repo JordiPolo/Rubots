@@ -78,7 +78,7 @@ module Rubots
        robot = load_robot(robot_file)
        robot_name = config['Robots'][robot_count]  #this allows the robot names in the world be arbitrary, surely we dont need this.
        robot_model = $connection.createModel(robot_name, robot_count * 10)
-       robot_model.fiducialId( robot_count+1 ) #TODO: bad trick, we should eventually use the Simulation interface for this
+       robot_model.fiducialId = robot_count+1  #TODO: bad trick, we should eventually use the Simulation interface for this
        robot._attach_model( robot_model ) 
        
      end

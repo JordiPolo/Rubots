@@ -10,7 +10,7 @@
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  GNU General Public License for mCore details.
 
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
@@ -22,6 +22,7 @@ require 'rrmi'
 #Ruby Robotics Middleware 
 module RRMi
 
+  #old glory, needed to connect with gazebo 
   class Model
     attr_reader :name
     attr_accessor :fiducialId
@@ -40,10 +41,16 @@ module RRMi
       FiducialIface.new  getIndex( iface_index )
     end
     
+    def CannonIface (iface_index = nil)
+      CannonIface.new  getIndex( iface_index )
+    end
+    
+    
     
   private 
     def getIndex (iface_index)
       if iface_index.class == "String"
+        raise "WHOOOOO UUUSSSSSES this?"
         index = @name + "::" + iface_index
       else
         index = iface_index || @default_index

@@ -16,7 +16,9 @@
   xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
   xmlns:physics="http://playerstage.sourceforge.net/gazebo/xmlschema/#physics" >
 
-  <verbosity>5</verbosity>
+   <!-- ****************************** -->
+   <!--  Simulator configuration       -->
+   <!-- ****************************** -->
 
   <physics:ode>
     <stepTime>0.03</stepTime>
@@ -54,77 +56,52 @@
     <shadowTechnique>stencilModulative</shadowTechnique>
   </rendering:ogre>
 
-   <!-- Ground Plane -->
-  <model:physical name="plane1_model">
-    <xyz>0 0 0</xyz>
-    <rpy>0 0 0</rpy>
-    <static>true</static>
-
-    <body:plane name="plane1_body">
-      <geom:plane name="plane1_geom">
-        <normal>0 0 1</normal>
-        <size>2000 2000</size>
-        <segments>10 10</segments>
-        <uvTile>2000 2000</uvTile>
-        <material>Gazebo/GrayGrid</material>
-      </geom:plane>
-    </body:plane>
-  </model:physical>
-
-  <model:physical name="sphere1_model">
-    <xyz>2.15 -2.68 .3</xyz>
-    <rpy>0.0 0.0 0.0</rpy>
-    <static>false</static>
-    <laserFiducialId>11</laserFiducialId>
-    <laserRetro>5</laserRetro>
-
-    <body:sphere name="sphere1_body">
-      <geom:sphere name="sphere1_geom">
-        <size>2.5</size>
-
-        <visual>
-          <scale>2.5 2.5 2.5</scale>
-          <mesh>unit_sphere</mesh>
-          <material>Gazebo/Rocky</material>
-        </visual>
-      </geom:sphere>
-    </body:sphere>
-  </model:physical>
+   
 
 
-  <!-- 
-  Include the complete model described in the .model file
-  This assumes the root node is a <model:...>
-  -->
-  <!--  <include embedded="false">
-    <xi:include href="pioneer2dx.model" />
-  </include>
-  -->
+   <!-- ****************************** -->
+   <!--         Robots       -->
+   <!-- ****************************** -->
 
   <model:physical name="pioneer2dx_model1">
     <xyz>0 0 .145</xyz>
     <rpy>0.0 0.0 90.0</rpy>
     <collide>all</collide>
-
     <laserFiducialId>1</laserFiducialId>
     <laserRetro>0.5</laserRetro>
-    <model:physical name="laser">
-      <xyz>0.15 0 0.18</xyz>
 
+    <model:physical name="laser">
+      <xyz>0.30 0 0.0</xyz>
       <attach>
         <parentBody>chassis_body</parentBody>
         <myBody>laser_body</myBody>
       </attach>
-
       <include embedded="true">
         <xi:include href="models/sicklms200.model" />
       </include>
     </model:physical>
 
+
+    <model:physical name="cannon">
+      <xyz>0.05 0.0 0.1</xyz>
+      <attach>
+        <parentBody>chassis_body</parentBody>
+        <myBody>cannon_base</myBody>
+      </attach>
+      <include embedded="true">
+        <xi:include href="models/cannon.model" />
+      </include>
+    </model:physical>
+
+
     <include embedded="true">
       <xi:include href="models/pioneer2dx.model" />
     </include>
+
   </model:physical>
+
+
+
 
   <model:physical name="pioneer2dx_model2">
     <xyz>0 -1 .145</xyz>
@@ -135,7 +112,7 @@
     <laserRetro>0.5</laserRetro>
 
     <model:physical name="laser">
-      <xyz>0.15 0 0.18</xyz>
+      <xyz>0.30 0 0</xyz>
 
       <attach>
         <parentBody>chassis_body</parentBody>
@@ -152,6 +129,31 @@
     </include>
   </model:physical>
 
+
+
+   <!-- ****************************** -->
+   <!--          Objects       -->
+   <!-- ****************************** -->
+
+  <model:physical name="sphere1_model">
+    <xyz>2.15 -2.68 .3</xyz>
+    <rpy>0.0 0.0 0.0</rpy>
+    <static>false</static>
+    <laserFiducialId>11</laserFiducialId>
+    <laserRetro>5</laserRetro>
+
+    <body:sphere name="sphere1_body">
+      <geom:sphere name="sphere1_geom">
+        <size>1.5</size>
+
+        <visual>
+          <scale>1.5 1.5 1.5</scale>
+          <mesh>unit_sphere</mesh>
+          <material>Gazebo/Rocky</material>
+        </visual>
+      </geom:sphere>
+    </body:sphere>
+  </model:physical>
 
   <model:physical name="box1_model">
     <xyz>1 1.5 0.5</xyz>
@@ -172,6 +174,28 @@
         </visual>
       </geom:box>
     </body:box>
+  </model:physical>
+
+
+
+   <!-- ****************************** -->
+   <!--  Stadium       -->
+   <!-- ****************************** -->
+
+  <model:physical name="plane1_model">
+    <xyz>0 0 0</xyz>
+    <rpy>0 0 0</rpy>
+    <static>true</static>
+
+    <body:plane name="plane1_body">
+      <geom:plane name="plane1_geom">
+        <normal>0 0 1</normal>
+        <size>2000 2000</size>
+        <segments>10 10</segments>
+        <uvTile>2000 2000</uvTile>
+        <material>Gazebo/GrayGrid</material>
+      </geom:plane>
+    </body:plane>
   </model:physical>
 
 

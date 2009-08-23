@@ -17,6 +17,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
+require 'rubygems'
+require 'ruby-debug'
 require 'fluentforwardable' #robot info
 require 'observer' # events
 
@@ -53,17 +55,15 @@ module Rubots
          if Rules::ID_ROBOTS.include? object.id
           #TODO 
            #object.info = RobotInfo.new $engine.robot_from_fiducial(f.id)
-          object.type = "robot"
-          notify_observers( "scannedRobot", object )
+           object.type = "robot"
+           event = "ScannedRobot"
          else
            object.type = "object"
-           notify_observers( "scannedObject", object )
+           event = "ScannedObject"
          end      
+         changed
+         notify_observers( event, object )
       end
-
-#        f = fiducial.fiducials[i]
-#        puts "id, x, y, range, bearing, orientation: ", f.id, f.pos[0], f.pos[1], f.range, f.bearing * 180 / PI, f.orient
-#      end
     end
 
   end
