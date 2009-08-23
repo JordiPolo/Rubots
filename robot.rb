@@ -103,9 +103,9 @@ module Rubots
       @radar.add_observer self  #interested in radar events
     end
 
-    #periodic instructions come here
+    #periodic instructions from the engine come here
     def _run
-      
+      @radar.scan()
     end
 #TODO: empty method
     def _cleanup 
@@ -119,7 +119,7 @@ module Rubots
     end
 
     def run
-   #   @radar.scan()
+      
     end
     
     def onFinish

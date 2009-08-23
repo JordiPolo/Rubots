@@ -68,8 +68,19 @@ module RRMi
         raise "Gazebo or player couldn't be initialized" if line.include? error_at
       end
       puts line
+    #  enable_output pipe
     end
-
+    
+    def enable_output (pipe)
+    Thread.new do
+      while true do 
+        while line = pipe.gets
+         puts line
+        end
+      end
+     end   
+    end    
+    
     def pid
       pid = nil
       ps = IO.popen("ps -ef", "r")

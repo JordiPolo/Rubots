@@ -31,11 +31,39 @@ require 'rrmi_common'
 #Ruby Robotics Middleware 
 module RRMi
 
+  #TODO: x, y  and distance are redundant, choose!
+  #type, info are placeholders for the upper layer
+  class ScannedObject
+    attr_accessor :id, :x, :y, :distance, :bearing, :type, :info
+  end
+
 
   class FiducialIface
     def initialize (index)
       @iface = Playercpp::FiducialProxy.new($playerClient, index)
     end
+    
+    def dataAvailable
+      @iface.GetCount != 0
+    end
+    
+    def find_object
+      $playerClient.Read
+      for i in 1..@iface.GetCount do
+         f = @iface.GetFiducialItem(i-1)
+         p f.public_methods(false)
+         p f.class
+         puts "object found, id: #{f.id}, x: #{f.pose.px}, y: #{f.pose.py}, angle: #{f.pose.pyaw}"
+         object = ScannedObject.new
+         object.id = f.id  
+         object.x = f.pose.px
+         object.y = f.pose.py
+#         object.distance = 
+         object.bearing = f.pose.pyaw
+         yield object
+      end
+    end
+    
   end
 
 
