@@ -75,8 +75,7 @@ module Rubots
     #attr_reader :forwardSpeed, :turningSpeed
     attr_reader :name, :energy, :fiducialId
     
-    delegate_reader(:forwardSpeed).as(:current_velocity).to(:_ifacePosition)
-
+    #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
     
     def initialize
       @gun = Gun.new
@@ -97,7 +96,7 @@ module Rubots
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
  
       
-    #  @radar._init(connection)     
+      @radar._init(model)     
       @gun._init(model)
 #TODO: fiducial ID
 #      @fiducialId = connection.fiducialID
@@ -108,9 +107,9 @@ module Rubots
     def _run
       
     end
-
+#TODO: empty method
     def _cleanup 
-   #   @radar._cleanup
+      @radar._cleanup
       @gun._cleanup
     end 
     ###################################
@@ -174,6 +173,14 @@ module Rubots
       puts "set speed"
       setTurningSpeed  angle
       setForwardSpeed  speed
+    end
+
+    # TODO: how to use delegate_reader for these?
+    def forwardSpeed 
+      @_ifacePosition.current_velocity[:x]
+    end
+    def turningSpeed 
+      @_ifacePosition.current_velocity[:yaw]
     end
 
     def stop 

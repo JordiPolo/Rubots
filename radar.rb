@@ -43,13 +43,13 @@ module Rubots
    
     end
 
-    def _init (connection)
-      @_connection = connection
-      @_iface = @_connection.fiducialIface
+    def _init (model)
+      
+      @_iface = model.fiducialIface
     end
 
     def _cleanup
-      @_iface.cleanup
+
     end 
 
     def scan

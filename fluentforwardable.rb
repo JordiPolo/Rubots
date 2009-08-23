@@ -1,6 +1,8 @@
 #from Bryan Helmkamp
 #http://www.brynary.com/2007/4/8/fluent-interface-for-ruby-delegation
 
+require "ruby-debug"
+
 require "forwardable"
 
 module FluentForwardable
@@ -26,6 +28,7 @@ module FluentForwardable
     def to(receiver)
       for method in @methods
         new_method = new_method_name(method)
+        #debugger
         if @readers
           @klass.class_eval { def_delegator receiver, method, new_method }
         end

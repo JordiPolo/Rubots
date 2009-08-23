@@ -41,7 +41,6 @@ class TestRobot < Rubots::Robot
 
     def run
       p name
-      p current_velocity
       p forwardSpeed
       stop
       puts "testrobot running"
