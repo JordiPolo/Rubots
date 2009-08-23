@@ -48,6 +48,7 @@ class TestRobot < Rubots::Robot
       initial_position = worldPosition
       p "speed at 100 should be"
       setSpeed 0, 10
+      gun.turn 60
       sleep 10
       position2 = worldPosition
       p "pos1 ", initial_position

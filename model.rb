@@ -41,7 +41,7 @@ module RRMi
       FiducialIface.new  getIndex( iface_index )
     end
     
-    def CannonIface (iface_index = nil)
+    def cannonIface (iface_index = nil)
       CannonIface.new  getIndex( iface_index )
     end
     

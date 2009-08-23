@@ -59,7 +59,7 @@ module Rubots
       @_iface.turn degrees
     end
     
-    def fire (number = 1)
+    def shoot (number = 1)
       if @bullets < number 
         number = @bullets
       end

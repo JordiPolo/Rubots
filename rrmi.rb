@@ -30,8 +30,8 @@ module RRMi
 
   class CannonIface
     def initialize (index)
-      @iface = Playercpp::PTZProxy.new($connection.player, index)
-      @iface.SetControlMode(PlayerCc::PLAYER_PTZ_POSITION_CONTROL)
+      @iface = Playercpp::PtzProxy.new($connection.player, index)
+      @iface.SelectControlMode(Playercpp::PLAYER_PTZ_POSITION_CONTROL)
       @pan = 0
       
     end    
