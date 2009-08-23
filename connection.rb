@@ -83,34 +83,32 @@ module RRMi
       playerProcess.run 
       @monitoringProcesses << playerProcess
 
-      puts "Player launched"
-      sleep 1      
-      $playerClient = Playercpp::PlayerClient.new('localhost')
-      
-=begin      
+      puts "Launching player"
+
       retries = 6
       connected = false
       while (!connected) and (retries > 0)
         sleep 1
-        if @playerClient.connect == 0
-          connected = true 
+        begin
+          $playerClient = Playercpp::PlayerClient.new('localhost')
+        rescue 
+          retries -= 1
+        else
+          connected = true
         end
-        retries -= 1
-      end
-     
+      end  
       if !connected
-        error = Playerc::playerc_error_str()
         cleanup
-        raise error
+        raise "we were not able to launch Player"
       end
-=end
+        
     end 
     
 
     def update  
-#      while @playerClient.data_requested == 1
-#        @playerClient.Read
-#      end
+      if $playerClient.Peek(0)
+        $playerClient.Read
+      end
     end
 
     # if all the processes are running
@@ -122,17 +120,6 @@ module RRMi
     def cleanup
       @monitoringProcesses.each{ |p| p.kill}
     end
-=begin
-    def using?(feature)
-      if feature == 'player'
-        return @usingPlayer
-      elsif feature == 'gazebo'
-        return true
-      else
-        return false
-      end
-    end
-=end
     #create a new model of this connection with this name and index
     def createModel (model_name, default_index=nil)
       Model.new self, model_name, default_index

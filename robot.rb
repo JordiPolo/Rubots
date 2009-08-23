@@ -37,7 +37,7 @@ module Rubots
       if data > limit
         data = limit
       end
-      result = (data * real_limit) / limit
+      result = (data * real_limit).to_f / limit
       return result
     end
   end
@@ -87,6 +87,7 @@ module Rubots
       @_ifacePosition = nil
    #   @_model = nil
       @energy = Rules::LIFE
+      
     end
 
     def _attach_model (model)
