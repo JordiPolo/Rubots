@@ -51,7 +51,8 @@ module Rubots
       
       @_iface.find_object do |object|
          if Rules::ID_ROBOTS.include? object.id
-          #object.info = RobotInfo.new $engine.robot_from_fiducial(f.id)
+          #TODO 
+           #object.info = RobotInfo.new $engine.robot_from_fiducial(f.id)
           object.type = "robot"
           notify_observers( "scannedRobot", object )
          else

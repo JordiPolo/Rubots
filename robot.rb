@@ -71,10 +71,9 @@ module Rubots
 
   class Robot
     extend Forwardable
-    attr_reader :gun, :radar
+    attr_reader :gun, :radar, :energy
     #attr_reader :forwardSpeed, :turningSpeed
-    attr_reader :name, :energy, :fiducialId
-    
+    delegate_readers(:name, :fiducialId).to(:@_model)
     #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
     
     def initialize
@@ -90,14 +89,11 @@ module Rubots
     end
 
     def _attach_model (model)
-
-      @name = model.name
+      @_model = model
       @_ifacePosition = model.positionIface 
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
       @radar._init(model)     
       @gun._init(model)
-#TODO: fiducial ID
-#      @fiducialId = connection.fiducialID
       @radar.add_observer self  #interested in radar events
     end
 
@@ -184,7 +180,12 @@ module Rubots
     def stop 
       @_ifacePosition.stop
     end
-
+    
+    def test
+      ein = 4
+      nose = $connection.simulation.GetProperty(name, "fiducial_id", ein, 5)
+      p nose
+    end
     # movement
 =begin
     def forward (meters)

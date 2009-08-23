@@ -48,9 +48,7 @@ module RRMi
   #    $connection.player.Read
       for i in 1..@iface.GetCount do
          f = @iface.GetFiducialItem(i-1)
-         p f.public_methods(false)
-         p f.class
-         puts "object found, id: #{f.id}, x: #{f.pose.px}, y: #{f.pose.py}, angle: #{f.pose.pyaw}"
+     #    puts "object found, id: #{f.id}, x: #{f.pose.px}, y: #{f.pose.py}, angle: #{f.pose.pyaw}"
          object = ScannedObject.new
          object.id = f.id  
          object.x = f.pose.px

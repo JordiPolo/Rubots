@@ -61,6 +61,7 @@ module RRMi
     end
 
   private
+  
     def wait_initialize(pipe, stop_at, error_at)
       while line = pipe.gets
        puts line 
@@ -68,10 +69,10 @@ module RRMi
         raise "Gazebo or player couldn't be initialized" if line.include? error_at
       end
       puts line
-    #  enable_output pipe
+    #  debug_output pipe
     end
     
-    def enable_output (pipe)
+    def debug_output (pipe)
     Thread.new do
       while true do 
         while line = pipe.gets

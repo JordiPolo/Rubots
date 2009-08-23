@@ -24,24 +24,11 @@ module RRMi
 
   class Model
     attr_reader :name
+    attr_accessor :fiducialId
+    
     def initialize ( name, default_index)
       @name = name
       @default_index = default_index
-      #puts "default index  " + default_index.to_s
-      
-      #nose = $connection.simulation.GetProperty(name, "fiducial_id", 10)
-      #p nose
-  #    @simIface = Gazeboc::SimulationIface.new 
-    end
-
-    def fiducialID  #TODO: fix the Ruby bindings to make this work
-      @simIface.Open @connection.gazeboClient, "default"
-      @simIface.Lock 1
-      #@simIface.GetModelFiducialID @name, id 
-      @simIface.Unlock
-      @simIface.Close #TODO:is this safe?  Or I close other instances?
-      #return id
-      raise "dont call this"
     end
     
     
