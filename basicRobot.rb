@@ -43,10 +43,11 @@ class TestRobot < Rubots::Robot
       p name
       p forwardSpeed
       stop
+      
       puts "testrobot running"
       initial_position = worldPosition
       p "speed at 100 should be"
-      setSpeed 1, 5
+      setSpeed 0, 10
       sleep 10
       position2 = worldPosition
       p "pos1 ", initial_position
