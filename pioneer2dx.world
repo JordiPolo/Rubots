@@ -93,7 +93,6 @@
       </include>
     </model:physical>
 
-
     <include embedded="true">
       <xi:include href="models/pioneer2dx.model" />
     </include>

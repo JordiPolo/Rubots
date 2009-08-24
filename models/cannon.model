@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+
+<!-- Cannon -->
+<model:physical name="cannon_model"
+  xmlns:model="http://playerstage.sourceforge.net/gazebo/xmlschema/#model" 
+  xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor" 
+  xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+  xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+  xmlns:body="http://playerstage.sourceforge.net/gazebo/xmlschema/#body" 
+  xmlns:geom="http://playerstage.sourceforge.net/gazebo/xmlschema/#geom" 
+  xmlns:joint="http://playerstage.sourceforge.net/gazebo/xmlschema/#joint" 
+  xmlns:visual="http://playerstage.sourceforge.net/gazebo/xmlschema/#visual" 
+  >
+
+  <xyz>0 0 0.0</xyz>
+  <rpy>0.0 0.0 0.0</rpy>
+
+  <canonicalBody>cannon_base</canonicalBody>
+
+  <body:cylinder name="cannon_base">
+    <xyz>-0.0 0.0 0.0</xyz>
+    <rpy>0 0 0</rpy>
+
+    <geom:cylinder name="cannon_base_g">
+      <size>0.15 0.02</size>
+      <mass>1</mass> 
+      <visual>
+        <xyz>0 0 -0.0</xyz>
+        <size>0.3 0.3 0.02</size>
+        <mesh>unit_cylinder</mesh>
+        <material>Gazebo/Green</material>
+      </visual>
+    </geom:cylinder>
+
+  </body:cylinder>
+
+  <body:box name="cannon_movable">
+    <xyz>-0.0 0.0 0.02</xyz>
+    <rpy>0 0 0</rpy>
+    <geom:box name="cannon_movable_g">
+      <size>0.3 0.3 0.2</size>
+      <mass>1</mass> 
+      <visual>
+        <xyz>0 0 -0.0</xyz>
+        <size>0.3 0.3 0.02</size>
+        <mesh>unit_cylinder</mesh>
+        <material>Gazebo/Black</material>
+      </visual>
+      <visual>
+        <xyz>-0.2 0 -0.0</xyz>
+        <rpy>0 90 0</rpy>
+        <size>0.04 0.04 0.2</size>
+        <mesh>unit_cylinder</mesh>
+        <material>Gazebo/Red</material>
+      </visual>
+      <visual>
+        <xyz>-0.8 0 -0.0</xyz>
+        <size>0.01 0.01 0.01</size>
+        <mesh>unit_cylinder</mesh>
+        <material>Gazebo/Black</material>
+      </visual>
+
+    <sensor:ray name="laser_nuevo">
+      <rayCount>1</rayCount>
+      <rangeCount>10</rangeCount>
+      <origin>0.01 0.0 0</origin>
+
+      <displayRays>fan</displayRays>
+
+      <minAngle>-1</minAngle>
+      <maxAngle>1</maxAngle>
+
+      <minRange>0.1</minRange>
+      <maxRange>8</maxRange>
+      <resRange>.5</resRange>
+  <controller:sicklms200_laser name="laser_con">
+        <interface:laser name="laser_if"/>
+        <interface:fiducial name="fiducial_if"/>
+      </controller:sicklms200_laser>
+
+    </sensor:ray>
+
+    </geom:box>
+  </body:box>
+
+  <joint:hinge name="cannon_base_joint">
+    <body1>cannon_base</body1>
+    <body2>cannon_movable</body2>
+    <anchor>cannon_movable</anchor>
+    <anchorOffset>0 -0.05 0</anchorOffset>
+    <axis>0 0 1</axis>
+    <erp>0.8</erp>
+    <cfm>10e-5</cfm>
+  </joint:hinge>
+
+
+  <controller:cannon_ptz name="cannon_movement_controller">
+    <panJoint>cannon_base_joint</panJoint>
+    <tiltJoint>cannon_base_joint</tiltJoint>
+    <motionGain>1</motionGain>
+    <force>0.001</force>
+    <interface:ptz name="ptz_iface_0"/>
+  </controller:cannon_ptz>
+
+
+
+<!--
+  <body:cylinder name="cannon_tube">
+    <xyz>-0.2 0.0 0.04</xyz>
+    <rpy>0 90 0</rpy>
+    <geom:cylinder name="cannon_tube_g">
+      <size>0.02 0.2</size>
+      <mass>1</mass> 
+    </geom:cylinder>
+
+  </body:cylinder>
+
+  <body:cylinder name="cannon_tip">
+    <xyz>-0.8 0.0 0.04</xyz>
+    <rpy>0 0 0</rpy>
+    <geom:cylinder name="cannon_tip_g">
+      <size>0.01 0.01</size>
+      <mass>1</mass> 
+    </geom:cylinder>
+  </body:cylinder>
+
+  <joint:hinge name="cannon_joint">
+    <body1>cannon_movable</body1>
+    <body2>cannon_tube</body2>
+    <anchor>cannon_tube</anchor>
+    <anchorOffset>0 -0.05 0</anchorOffset>
+    <axis>0 0 1</axis>
+    <erp>0.8</erp>
+    <cfm>10e-5</cfm>
+  </joint:hinge>
+
+  <joint:hinge name="cannon_tip">
+    <body1>cannon_tube</body1>
+    <body2>cannon_tip</body2>
+    <anchor>cannon_tip</anchor>
+    <anchorOffset>0 0 0</anchorOffset>
+    <axis>0 0 1</axis>
+    <erp>0.8</erp>
+    <cfm>10e-2</cfm>
+  </joint:hinge>
+-->
+
+</model:physical>
