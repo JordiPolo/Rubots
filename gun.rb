@@ -51,7 +51,7 @@ module Rubots
       if @bullets < number 
         number = @bullets
       end
-      @bullets -= number
+      @bullets -= number 
       puts "fired #{number} bullets"
       @_iface.shoot(number)
       

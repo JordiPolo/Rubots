@@ -49,41 +49,31 @@ module Rubots
 
    def init (batch_mode)
      #read configuration 
-     config_file = "configuration.yml"
      session_file = "session.yml"
-
-     if not File.exists? config_file
-       raise "Configuration file #{config_file} can not be found" 
-     end
+     
      if not File.exists? session_file
        raise "The game sesssion file #{session_file} can not be found" 
      end
-
-     config = YAML::load(File.open(config_file))
+     
      session = YAML::load(File.open(session_file))
+     
+     #load stadium
+     stadium_file = session['stadium']
+     
+     if not File.exists? stadium_file
+       raise "Configuration file #{config_file} can not be found" 
+     end
 
+     stadium = YAML::load(File.open(stadium_file))
+     stadium_file_prefix = File.dirname( stadium_file ) + '/'
+          
      @software = RRMi::UnderlyingSoftware.new
-     @software.startGazebo( config['gazebo_config'], batch_mode )
-
-     if config['use_player']
-       @software.startPlayer( config['player_config'] )
-     end
-
-
+     @software.startGazebo( stadium_file_prefix + stadium['gazebo_config'], batch_mode )
+     @software.startPlayer( stadium_file_prefix + stadium['player_config'] )
+     
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
-
-      
-      #WARNING: we assume here an order in the files. TODO
-      #We assume that the config, the world and the session file has the same order
-      #and based on the same numbers
-      # each robot in the player config file will have 10 slots of interfaces
-      # 0 , 10, 20 , 30 as defaults. 
-     session['Robots'].each_with_index do |robot_file, robot_count|
-       robot = load_robot(robot_file)
-       robot_name = config['Robots'][robot_count]  #this allows the robot names in the world be arbitrary, surely we dont need this.
-       robot._init :name => robot_name, :base_index => robot_count * 10, :fiducialId => robot_count +1 
-
-     end
+  #TODO: rules
+     loadRobots(session) 
      
   end
 
@@ -140,14 +130,20 @@ module Rubots
       end
   end 
 
-
-  def load_robot(robot_file)
-     puts "loading robot " + robot_file
-       if not File.exists? robot_file
-         raise "The robot file #{robot_file} can not be found"
-       end
-       robot = nil
-       total_bytes = 0
+      
+  def loadRobots(session)
+      # Numbering in robots:
+      #robot1 - fiducialId = 1 , base_index = 10
+      #robot2 - fiducialId = 2 , base_index = 20
+      # each robot in the player config file will have 10 slots of interfaces
+      # 0 , 10, 20 , 30 as defaults. 
+    session['Robots'].each_with_index do |robot_file, robot_count|
+      puts "loading robot " + robot_file
+      if not File.exists? robot_file
+        raise "The robot file #{robot_file} can not be found"
+      end
+      robot = nil
+      total_bytes = 0
 
        File.open( robot_file ) do |f|
 #TODO: count code size
@@ -156,15 +152,15 @@ module Rubots
            line.gsub!(/ /,'') # strip all the whitespaces
            robot_class = line.slice(5..line.index('<')-1)
            require robot_file
-           robot = eval(robot_class + ".new")
+           robot = eval(robot_class + ".new robot_count")
            if robot.nil?
              raise "No robot could be created from the file"
            end
            @robots << robot
-           return robot
          end
-       end
-  end
+       end #file.open
+     end 
+  end 
 
   
   def cleanup

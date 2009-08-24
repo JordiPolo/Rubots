@@ -61,9 +61,10 @@
 
    <!-- ****************************** -->
    <!--         Robots       -->
+   <!-- Robots must be always named robot+fiducialID -> robot1, robot2, etc -->
    <!-- ****************************** -->
 
-  <model:physical name="pioneer2dx_model1">
+  <model:physical name="robot1">
     <xyz>0 0 .145</xyz>
     <rpy>0.0 0.0 90.0</rpy>
     <collide>all</collide>
@@ -108,7 +109,7 @@
 
 
 
-  <model:physical name="pioneer2dx_model2">
+  <model:physical name="robot2">
     <xyz>0 -1 .145</xyz>
     <rpy>0.0 0.0 -90.0</rpy>
     <collide>all</collide>

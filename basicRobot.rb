@@ -28,8 +28,8 @@ require 'robot'
 
 class TestRobot < Rubots::Robot
 
- def initialize
-   super
+ def initialize (index)
+   super index
    name = "Test Robot"
  end
 

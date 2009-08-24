@@ -18,7 +18,7 @@
 =end
 
 require 'playercpp'
-require 'model'
+
 
 
 #Ruby Robotics Middleware 

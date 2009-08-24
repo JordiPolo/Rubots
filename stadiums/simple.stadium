@@ -1,0 +1,2 @@
+gazebo_config: simple.world
+player_config: simple.cfg

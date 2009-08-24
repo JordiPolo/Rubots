@@ -1,4 +1,5 @@
-
+stadium: stadiums/simple.stadium
+rules: arcade
 Robots:
 - basicRobot.rb
 - basicRobot2.rb

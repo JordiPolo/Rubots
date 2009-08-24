@@ -49,32 +49,29 @@ module Rubots
 
   class Robot
     extend Forwardable
-    attr_reader :gun, :radar, :energy, :name, :fiducialId, :base_index
+    attr_reader :gun, :radar, :energy
+    attr_reader :realName, :name, :fiducialId
     #attr_reader :forwardSpeed, :turningSpeed
     #delegate_readers(:name, :fiducialId).to(:@_model)
     #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
     
-    def initialize
+    def initialize (robot_index)
       @forwardSpeed = 0
       @turningSpeed = 0
-      @name = "Unknown"
-      @_ifacePosition = nil
+      @name = "No name"
       @energy = Rules::LIFE
-      
-    end
-
-    def _init (options)
-      @name = options[:name]
-      @base_index = options[:base_index]
-      @fiducialId = options[:fiducialId]
-                        
+      my_index = robot_index + 1
+      @realName = "robot" + my_index.to_s
+      @base_index = my_index * 10
+      @fiducialId = my_index
       @_ifacePosition = RRMi::PositionIface.new @base_index 
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
 
       @gun = Gun.new @base_index
       @radar = Radar.new @base_index
-      @radar.add_observer self  #interested in radar events
+      @radar.add_observer self  #interested in radar events      
     end
+
 
     #periodic instructions from the engine come here
     def _run
