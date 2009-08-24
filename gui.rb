@@ -57,7 +57,7 @@ module Rubots
       config['rules'] = 'strict' if @contents.rule_strict.checked
       config['robots'] = Array.new
       config['robots'][0] = @contents.robot1_requester.text
-      config['robots'][1] = @contents.robot1_requester.text
+      config['robots'][1] = @contents.robot2_requester.text
       Config.save config
       accept
     end

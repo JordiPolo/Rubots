@@ -19,7 +19,11 @@
 
 require 'gui'
 
-a = Qt::Application.new(ARGV)
-  main = Rubots::GameControlWidget.new
-  main.show
-a.exec
+  if $0 == __FILE__
+    about = KDE::AboutData.new("Rubots", "Rubots", KDE.ki18n(""), "0.1")
+    KDE::CmdLineArgs.init(ARGV, about)
+    a = KDE::Application.new()
+    main = Rubots::GameControlWidget.new
+    main.show
+    a.exec
+  end

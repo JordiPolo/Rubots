@@ -1,7 +1,7 @@
 - ProcessMonitor is a pretty fragile class.
    - How can I get the PID of the processes I am spawing and 
      at the same time wait only the time it takes for them to initialize
+- just grep for TODO :D
 
-- Automatically launched Played would time out waiting for server
 
 

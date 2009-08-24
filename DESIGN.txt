@@ -6,6 +6,6 @@ setName for setting names:  setSpeed , setForwardSpeed
 name without 'get' for getting names: speed, forwardSpeed
 multiWord separated by capitalization
 
-methods and variables not suppossed to be used by robots in Robot classes are created with a leading _:
+methods and variables not suppossed to be used by public API in public classes are created with a leading _:
  _ifacePosition, _init
 
