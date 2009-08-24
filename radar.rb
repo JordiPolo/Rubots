@@ -21,6 +21,9 @@ require 'rubygems'
 require 'ruby-debug'
 require 'fluentforwardable' #robot info
 require 'observer' # events
+require 'robot'
+require 'rrmi'
+
 
 module Rubots
 
@@ -37,13 +40,11 @@ module Rubots
 
   class Radar
     include Observable
-    def initialize 
-   
+    def initialize (robot) 
+      @_iface = RRMi::FiducialIface.new robot.base_index 
+      add_observer robot
     end
 
-    def _init (model)
-      @_iface = model.fiducialIface
-    end
 
     def _cleanup
 

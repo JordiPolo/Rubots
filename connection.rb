@@ -46,12 +46,8 @@ module RRMi
         @player.Read
       end
     end
-    
-    #create a new model of this connection with this name and index
-    def createModel (model_name, default_index=nil)
-      Model.new model_name, default_index
-    end
 
+    
   end
   
   

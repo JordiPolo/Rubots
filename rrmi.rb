@@ -55,7 +55,7 @@ module RRMi
 
   class FiducialIface
     def initialize (index)
-      puts "index " + index.to_s
+      puts "fidu index " + index.to_s
       @iface = Playercpp::FiducialProxy.new($connection.player, index)
     end
     

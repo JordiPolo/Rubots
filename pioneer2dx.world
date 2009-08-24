@@ -71,6 +71,9 @@
     <laserRetro>0.5</laserRetro>
 
     <model:physical name="laser">
+      <laserFiducialId>1</laserFiducialId>
+      <laserRetro>0.5</laserRetro>
+
       <xyz>0.30 0 0.0</xyz>
       <attach>
         <parentBody>chassis_body</parentBody>
@@ -84,6 +87,9 @@
 
     <model:physical name="cannon">
       <xyz>0.05 0.0 0.1</xyz>
+      <laserFiducialId>1</laserFiducialId>
+      <laserRetro>0.5</laserRetro>
+
       <attach>
         <parentBody>chassis_body</parentBody>
         <myBody>cannon_base</myBody>
@@ -106,10 +112,13 @@
     <xyz>0 -1 .145</xyz>
     <rpy>0.0 0.0 -90.0</rpy>
     <collide>all</collide>
-    <laserFiducialId>1</laserFiducialId>
+    <laserFiducialId>2</laserFiducialId>
     <laserRetro>0.5</laserRetro>
 
     <model:physical name="laser">
+    <laserFiducialId>2</laserFiducialId>
+    <laserRetro>0.5</laserRetro>
+
       <xyz>0.30 0 0</xyz>
       <attach>
         <parentBody>chassis_body</parentBody>
@@ -122,6 +131,9 @@
 
 
     <model:physical name="cannon">
+    <laserFiducialId>2</laserFiducialId>
+    <laserRetro>0.5</laserRetro>
+
         <xyz>0.05 0.0 0.1</xyz>
         <attach>
           <parentBody>chassis_body</parentBody>

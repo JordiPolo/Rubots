@@ -69,7 +69,7 @@ module RRMi
         raise "Gazebo or player couldn't be initialized" if line.include? error_at
       end
       puts line
-    #  debug_output pipe
+      debug_output pipe
     end
     
     def debug_output (pipe)
@@ -97,6 +97,7 @@ module RRMi
 
     def start_process
       puts "Starting process"
+      puts @startCmd
       pipe = IO.popen(@startCmd, "r")
       wait_initialize( pipe, @success, @error )
      # pipe.close
@@ -105,7 +106,7 @@ module RRMi
 #      Process.detach(process)
     end
     
- 
+
   end
 
 end

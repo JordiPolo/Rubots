@@ -21,9 +21,9 @@
 require 'rubygems'
 require 'ruby-debug'
 require 'radar'
+require 'rrmi'
 require 'rules'
 require 'fluentforwardable'
-#require 'gun'
 
 
 module Rubots
@@ -45,13 +45,13 @@ module Rubots
 
 
   class Gun
-     #rotations, fire 
-    def initialize
+    attr_reader :bullets
+    def initialize (robot)
       @bullets = Rules::BULLETS
+      @_iface = RRMi::CannonIface.new robot.base_index 
+      @_fiducialIface = RRMi::FiducialIface.new robot.base_index + 1 
     end
-    def _init(model)
-      @_iface = model.cannonIface 
-    end
+
     def _cleanup
     end
     
@@ -77,29 +77,30 @@ module Rubots
 
   class Robot
     extend Forwardable
-    attr_reader :gun, :radar, :energy
+    attr_reader :gun, :radar, :energy, :name, :fiducialId, :base_index
     #attr_reader :forwardSpeed, :turningSpeed
-    delegate_readers(:name, :fiducialId).to(:@_model)
+    #delegate_readers(:name, :fiducialId).to(:@_model)
     #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
     
     def initialize
-      @gun = Gun.new
-      @radar = Radar.new
       @forwardSpeed = 0
       @turningSpeed = 0
       @name = "Unknown"
       @_ifacePosition = nil
-   #   @_model = nil
       @energy = Rules::LIFE
       
     end
 
-    def _attach_model (model)
-      @_model = model
-      @_ifacePosition = model.positionIface 
+    def _init (options)
+      @name = options[:name]
+      @base_index = options[:base_index]
+      @fiducialId = options[:fiducialId]
+                        
+      @_ifacePosition = RRMi::PositionIface.new @base_index 
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
-      @radar._init(model)     
-      @gun._init(model)
+
+      @gun = Gun.new self
+      @radar = Radar.new self
       @radar.add_observer self  #interested in radar events
     end
 
