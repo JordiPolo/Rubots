@@ -29,10 +29,10 @@ module Rubots
 # Gun mounted on the robots
   class Gun
     attr_reader :bullets
-    def initialize (robot)
+    def initialize (index)
       @bullets = Rules::BULLETS
-      @_iface = RRMi::CannonIface.new robot.base_index 
-      @_fiducialIface = RRMi::FiducialIface.new robot.base_index + 1 
+      @_iface = RRMi::CannonIface.new index 
+      @_radar = Radar.new index +1
     end
 
     def _cleanup
@@ -42,13 +42,28 @@ module Rubots
       @_iface.turn degrees
     end
     
+    def angle
+      @_iface.angle
+    end
+    
     def shoot (number = 1)
+      hitted = false
       if @bullets < number 
         number = @bullets
       end
       @bullets -= number
       puts "fired #{number} bullets"
       @_iface.shoot(number)
+      
+      @_radar.scan.each do |object|
+        if object.type == :robot
+          puts "maosduaf " + object.id.to_s
+          robot = $engine.robot_by_fiducial object.id
+          robot._hit number if not robot.nil?
+          hitted = true
+        end
+      end
+      return hitted
     end
 
   end

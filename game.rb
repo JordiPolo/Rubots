@@ -33,6 +33,10 @@ require 'robot'
 
 module Rubots
 
+  class GameLogic
+    
+  end
+  
   class Game < Qt::Object
 
    def initialize
@@ -77,7 +81,7 @@ module Rubots
      session['Robots'].each_with_index do |robot_file, robot_count|
        robot = load_robot(robot_file)
        robot_name = config['Robots'][robot_count]  #this allows the robot names in the world be arbitrary, surely we dont need this.
-       robot._init :name => robot_name, :base_index => robot_count * 10, :fiducial_id => robot_count +1 
+       robot._init :name => robot_name, :base_index => robot_count * 10, :fiducialId => robot_count +1 
 
      end
      
@@ -86,7 +90,7 @@ module Rubots
   def mainLoop
     Thread.abort_on_exception = true
     @robots.each do  |r| 
-      r.aboutToStart  #run outside the thread so we wait to every robot's start
+      r.onGameStart  #run outside the thread so we wait to every robot's start
     end
 
     @running = true
@@ -114,10 +118,14 @@ module Rubots
     end
   end  
 
-  def robot_from_fiducial (fiducial)
-    @robots.find {|r| r.fiducialId == fiducial}
-  end 
-
+  def robot_by_fiducial (fiducial)
+    @robots.each {|r| puts r.fiducialId}
+    @robots.find {|r| r.energy > 0 and r.fiducialId == fiducial}
+  end
+  
+  def kill_robot (robot)
+    @robots.delete robot
+  end
 
   slots :update
   def update
@@ -127,7 +135,7 @@ module Rubots
       if !@running
         @updateTimer.stop
         @threads.each { |aThread|  aThread.kill; aThread.join }
-        @robots.each { |r|  r.onFinish }   # let the robots to finish themselves
+        @robots.each { |r|  r.onGameFinish }   # let the robots to finish themselves
         cleanup 
       end
   end 
@@ -179,7 +187,7 @@ class GameControlWidget < Qt::Widget
   def initialize()
     super
     @game = Rubots::Game.new
-    #$engine = @game
+    $engine = @game
     
     run = Qt::PushButton.new("Run!")
     run.resize(100, 30)

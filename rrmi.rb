@@ -38,7 +38,11 @@ module RRMi
     
     def turn (degrees)
       @pan = degrees
-      @iface.SetCam( degrees, 0, 0 )  
+      @iface.SetCam( degrees, degrees, 0 )  
+    end
+    
+    def angle 
+      @iface.GetPan
     end
     
     def shoot (number)

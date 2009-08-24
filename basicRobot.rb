@@ -34,7 +34,7 @@ class TestRobot < Rubots::Robot
  end
 
 #events
-    def aboutToStart
+    def onStart
       puts "testrobot about to start"
   #    speed= , 1
     end
@@ -47,9 +47,13 @@ class TestRobot < Rubots::Robot
       puts "testrobot running"
       initial_position = worldPosition
       p "speed at 100 should be"
-      setSpeed 0, 10
-      gun.turn 60
-      sleep 10
+    #  setSpeed 0, 10
+      gun.turn 180 * Math::PI / 180.0
+      p gun.angle
+      sleep 6
+      gun.shoot 80
+      
+      sleep 15
       position2 = worldPosition
       p "pos1 ", initial_position
       p "pos2", position2
@@ -75,7 +79,7 @@ class TestRobot < Rubots::Robot
       end 
     end
 
-    def gameFinished
+    def onGameFinished
     end
 
 

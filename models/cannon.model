@@ -22,10 +22,26 @@
     <rpy>0 0 0</rpy>
     <geom:cylinder name="cannon_base_g">
       <size>0.15 0.02</size>
-      <mass>1</mass> 
+      <mass>5</mass> 
       <visual>
         <xyz>0 0 -0.0</xyz>
         <size>0.3 0.3 0.02</size>
+        <mesh>unit_cylinder</mesh>
+        <material>Gazebo/Green</material>
+      </visual>
+    </geom:cylinder>
+  </body:cylinder>
+
+
+  <body:cylinder name="cannon_base2">
+    <xyz>-0.0 0.0 0.0</xyz>
+    <rpy>0 0 0</rpy>
+    <geom:cylinder name="cannon_base2_g">
+      <size>0.15 0.0002</size>
+      <mass>0.001</mass> 
+      <visual>
+        <xyz>0 0 -0.0</xyz>
+        <size>0.3 0.3 0.0002</size>
         <mesh>unit_cylinder</mesh>
         <material>Gazebo/Green</material>
       </visual>
@@ -38,7 +54,7 @@
     <rpy>0 0 0</rpy>
     <geom:box name="cannon_movable_g">
       <size>0.3 0.3 0.2</size>
-      <mass>1</mass> 
+      <mass>0.01</mass> 
       <visual>
         <xyz>0 0 -0.0</xyz>
         <size>0.3 0.3 0.02</size>
@@ -78,7 +94,29 @@
     
   </body:box>
 
+  <joint:hinge name="pan_joint">
+    <body1>cannon_base</body1>
+    <body2>cannon_base2</body2>
+    <anchor>cannon_base</anchor>
+    <axis>0 0 1</axis>
+    <lowStop>-180</lowStop>
+    <highStop>180</highStop>
+    <erp>0.1</erp>
+    <cfm>10e-5</cfm>
+  </joint:hinge>
 
+  <joint:hinge name="tilt_joint">
+    <body1>cannon_base2</body1>
+    <body2>cannon_movable</body2>
+    <anchor>cannon_base2</anchor>
+    <axis>0 1 0</axis>
+    <lowStop>0</lowStop>
+    <highStop>0</highStop>
+    <erp>0.2</erp>
+    <cfm>10e-5</cfm>
+  </joint:hinge>
+
+<!--
   <joint:hinge name="cannon_base_joint">
     <body1>cannon_base</body1>
     <body2>cannon_movable</body2>
@@ -89,12 +127,22 @@
     <cfm>10e-5</cfm>
   </joint:hinge>
 
+  <joint:hinge name="cannon_base_joint">
+    <body1>cannon_base</body1>
+    <body2>cannon_movable</body2>
+    <anchor>cannon_movable</anchor>
+    <anchorOffset>0 0 0</anchorOffset>
+    <axis>0 0 1</axis>
+    <erp>0.8</erp>
+    <cfm>10e-5</cfm>
+  </joint:hinge>
+-->
 
   <controller:cannon_ptz name="cannon_movement_controller">
-    <panJoint>cannon_base_joint</panJoint>
-    <tiltJoint>cannon_base_joint</tiltJoint>
-    <motionGain>1</motionGain>
-    <force>0.001</force>
+    <panJoint>pan_joint</panJoint>
+    <tiltJoint>tilt_joint</tiltJoint>
+    <motionGain>1.5</motionGain>
+    <force>7</force>
     <interface:ptz name="ptz_iface_0"/>
   </controller:cannon_ptz>
 

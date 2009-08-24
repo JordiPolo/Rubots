@@ -40,9 +40,8 @@ module Rubots
 
   class Radar
     include Observable
-    def initialize (robot) 
-      @_iface = RRMi::FiducialIface.new robot.base_index 
-      add_observer robot
+    def initialize (index) 
+      @_iface = RRMi::FiducialIface.new index 
     end
 
 
@@ -51,20 +50,22 @@ module Rubots
     end 
 
     def scan
-      
+      found_objects = []
       @_iface.find_object do |object|
          if Rules::ID_ROBOTS.include? object.id
           #TODO find a robot with a fiducial
-           #object.info = RobotInfo.new $engine.robot_from_fiducial(f.id)
-           object.type = "robot"
+           object.info = RobotInfo.new $engine.robot_by_fiducial(object.id)
+           object.type = :robot
            event = "ScannedRobot"
          else
-           object.type = "object"
+           object.type = :object
            event = "ScannedObject"
          end      
+         found_objects << object
          changed
          notify_observers( event, object )
       end
+      return found_objects
     end
 
   end

@@ -71,8 +71,8 @@ module Rubots
       @_ifacePosition = RRMi::PositionIface.new @base_index 
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
 
-      @gun = Gun.new self
-      @radar = Radar.new self
+      @gun = Gun.new @base_index
+      @radar = Radar.new @base_index
       @radar.add_observer self  #interested in radar events
     end
 
@@ -85,31 +85,45 @@ module Rubots
       @radar._cleanup
       @gun._cleanup
     end 
+    
+    def _hit (bullets)
+      @energy -= bullets * Rules::BULLET_DAMAGE
+      if @energy <= 0 
+        $engine.kill_robot self
+        stop
+        onDeath
+      end
+      onHitByBullet
+    end
     ###################################
     # Events to be implemented by robots
     ###################################
-    def aboutToStart
+    def onGameStart
     end
 
     def run
       
     end
     
-    def onFinish
+    def onGameFinish
+    end
+
+    def onDeath
+      puts "I have been killed!"
     end
 
     def onHitByBullet
     end
-
+=begin
     def onHitRobot
     end
     
     def onHitObject
     end
-
+=end
     #when a robot is scanned
     def onScannedObject (object)
-      puts "object found "  + object.id.to_s
+   #   puts "object found "  + object.id.to_s
     end
     #when anything else is scanned
     def onScannedRobot (robot)
