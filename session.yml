@@ -1,7 +1,6 @@
-stadium: stadiums/simple.stadium
+--- 
+robots: 
+- basiRobot.rb
+- basiRobot.rb
 rules: arcade
-Robots:
-- basicRobot.rb
-- basicRobot2.rb
-
-
+stadium: /home/jordi/source/rubots/stadiums/simple.stadium

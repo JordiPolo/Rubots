@@ -33,12 +33,42 @@ require 'robot'
 
 module Rubots
 
-  class GameLogic
-    
+  class GameLogic 
+    def initialize (robots)
+      @robots = robots
+    end
   end
+ 
+  class Config
+    
+    def self.needed?
+      not File.exists? "session.yml"
+    end
+    
+    def self.load
+      Config.loadFile "session.yml"
+    end
+    def self.save (data)
+      self.saveConfig data, "session.yml"
+    end
+    
+    def self.loadFile (file)
+      if not File.exists? file
+        raise "The game configuration file #{file} can not be found" 
+      end
+      YAML::load(File.open(file))
+    end
+    
+    def self.saveConfig (data, file)
+      File.open(file, 'w') do |out|
+        YAML.dump(data, out)
+      end
+    end
+  end
+ 
   
   class Game < Qt::Object
-
+    
    def initialize
      super
      @robots = []
@@ -48,24 +78,14 @@ module Rubots
    end
 
    def init (batch_mode)
-     #read configuration 
-     session_file = "session.yml"
-     
-     if not File.exists? session_file
-       raise "The game sesssion file #{session_file} can not be found" 
-     end
-     
-     session = YAML::load(File.open(session_file))
-     
+    
+     session = Config.load 
+    
      #load stadium
      stadium_file = session['stadium']
-     
-     if not File.exists? stadium_file
-       raise "Configuration file #{config_file} can not be found" 
-     end
-
-     stadium = YAML::load(File.open(stadium_file))
      stadium_file_prefix = File.dirname( stadium_file ) + '/'
+     
+     stadium = Config.loadFile stadium_file
           
      @software = RRMi::UnderlyingSoftware.new
      @software.startGazebo( stadium_file_prefix + stadium['gazebo_config'], batch_mode )
@@ -137,7 +157,7 @@ module Rubots
       #robot2 - fiducialId = 2 , base_index = 20
       # each robot in the player config file will have 10 slots of interfaces
       # 0 , 10, 20 , 30 as defaults. 
-    session['Robots'].each_with_index do |robot_file, robot_count|
+    session['robots'].each_with_index do |robot_file, robot_count|
       puts "loading robot " + robot_file
       if not File.exists? robot_file
         raise "The robot file #{robot_file} can not be found"
@@ -177,48 +197,5 @@ module Rubots
  end
 
 
-  
-class GameControlWidget < Qt::Widget
-
-  def initialize()
-    super
-    @game = Rubots::Game.new
-    $engine = @game
-    
-    run = Qt::PushButton.new("Run!")
-    run.resize(100, 30)
-    run.connect(SIGNAL :clicked) { run_batch }
-
-    watch = Qt::PushButton.new("Watch!")
-    watch.resize(100, 30)
-    watch.connect(SIGNAL :clicked) { run_visual }
-
-
-    quit = Qt::PushButton.new('Quit')
-    quit.setFont(Qt::Font.new('Times', 18, Qt::Font::Bold))
-    quit.connect(SIGNAL :clicked) { @game.finish }
-
-    layout = Qt::VBoxLayout.new
-    layout.addWidget run
-    layout.addWidget watch
-    layout.addWidget quit
-    setLayout layout
-
-  end
-  def run_visual
-    @game.init false
-    @game.mainLoop
-  end
-  def run_batch
-    @game.init true
-    @game.mainLoop
-  end
 end
 
-
-end
-
-a = Qt::Application.new(ARGV)
-  main = Rubots::GameControlWidget.new
-  main.show
-a.exec
