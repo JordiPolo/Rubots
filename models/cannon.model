@@ -31,7 +31,7 @@
         <material>Gazebo/Green</material>
       </visual>
     </geom:cylinder>
-
+  
   </body:cylinder>
 
   <body:box name="cannon_movable">
@@ -102,47 +102,5 @@
     <interface:ptz name="ptz_iface_0"/>
   </controller:cannon_ptz>
 
-
-
-<!--
-  <body:cylinder name="cannon_tube">
-    <xyz>-0.2 0.0 0.04</xyz>
-    <rpy>0 90 0</rpy>
-    <geom:cylinder name="cannon_tube_g">
-      <size>0.02 0.2</size>
-      <mass>1</mass> 
-    </geom:cylinder>
-
-  </body:cylinder>
-
-  <body:cylinder name="cannon_tip">
-    <xyz>-0.8 0.0 0.04</xyz>
-    <rpy>0 0 0</rpy>
-    <geom:cylinder name="cannon_tip_g">
-      <size>0.01 0.01</size>
-      <mass>1</mass> 
-    </geom:cylinder>
-  </body:cylinder>
-
-  <joint:hinge name="cannon_joint">
-    <body1>cannon_movable</body1>
-    <body2>cannon_tube</body2>
-    <anchor>cannon_tube</anchor>
-    <anchorOffset>0 -0.05 0</anchorOffset>
-    <axis>0 0 1</axis>
-    <erp>0.8</erp>
-    <cfm>10e-5</cfm>
-  </joint:hinge>
-
-  <joint:hinge name="cannon_tip">
-    <body1>cannon_tube</body1>
-    <body2>cannon_tip</body2>
-    <anchor>cannon_tip</anchor>
-    <anchorOffset>0 0 0</anchorOffset>
-    <axis>0 0 1</axis>
-    <erp>0.8</erp>
-    <cfm>10e-2</cfm>
-  </joint:hinge>
--->
 
 </model:physical>
