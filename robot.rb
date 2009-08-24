@@ -17,13 +17,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-
+require 'fluentforwardable'
 require 'rubygems'
 require 'ruby-debug'
 require 'radar'
+require 'gun'
 require 'rrmi'
 require 'rules'
-require 'fluentforwardable'
+
 
 
 module Rubots
@@ -42,35 +43,6 @@ module Rubots
     end
   end
 
-
-
-  class Gun
-    attr_reader :bullets
-    def initialize (robot)
-      @bullets = Rules::BULLETS
-      @_iface = RRMi::CannonIface.new robot.base_index 
-      @_fiducialIface = RRMi::FiducialIface.new robot.base_index + 1 
-    end
-
-    def _cleanup
-    end
-    
-    def turn (degrees)
-      @_iface.turn degrees
-    end
-    
-    def shoot (number = 1)
-      if @bullets < number 
-        number = @bullets
-      end
-      @bullets -= number
-      puts "fired #{number} bullets"
-      @_iface.shoot(number)
-    end
-
-   private
-    include Tools 
-  end
 
 
 

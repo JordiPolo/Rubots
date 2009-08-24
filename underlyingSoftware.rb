@@ -29,6 +29,7 @@ require 'connection'
 #Ruby Robotics Middleware 
 module RRMi
   
+  #class to control Player and Gazebo
   class UnderlyingSoftware
   
     def initialize

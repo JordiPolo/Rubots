@@ -54,7 +54,7 @@ module Rubots
       
       @_iface.find_object do |object|
          if Rules::ID_ROBOTS.include? object.id
-          #TODO 
+          #TODO find a robot with a fiducial
            #object.info = RobotInfo.new $engine.robot_from_fiducial(f.id)
            object.type = "robot"
            event = "ScannedRobot"
