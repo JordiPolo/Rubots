@@ -67,6 +67,8 @@ module Rubots
   end
  
   
+  
+  
   class Game < Qt::Object
     
    def initialize
@@ -135,8 +137,30 @@ module Rubots
   
   def kill_robot (robot)
     @robots.delete robot
+    if @robots.size == 1 
+      gameover
+    end
   end
-
+  
+  def gameover
+      gui = GameOverGui.new
+      gui.setWinner @robots[0].name
+      data_header = "name          energy    bullets\n" #15 characters for the name 
+      data = ""
+      @all_robots.each do |r|
+        name = r.name.slice(0..14)
+        spaces = 15 - name.size 
+        data += name + ' ' * spaces 
+        data += r.energy.to_s 
+        data += ' ' * 7
+        data += r.gun.bullets.to_s
+        data += "\n"
+        puts "roboooooot" 
+      end
+      gui.setStats ( data_header + data)
+      gui.show
+  end
+  
   slots :update
   def update
       $connection.update 
@@ -180,6 +204,7 @@ module Rubots
          end
        end #file.open
      end 
+     @all_robots = Array.new @robots
   end 
 
   

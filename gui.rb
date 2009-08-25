@@ -21,12 +21,28 @@
   require 'Qt'
   require 'korundum4'
   
-  require 'configgui' #generated from ui: rbuic4 configgui.ui -o configgui.rb
+  require 'gameconfigui' #generated from ui: rbuic4 configgui.ui -o configgui.rb
+  require 'gameoverui'
   
   require 'game'
   
 module Rubots
  
+  class GameOverGui < Qt::Dialog 
+     def initialize
+       super 
+       @contents = Ui_GameOverDialog.new
+       @contents.setupUi(self)
+       @contents.buttonBox.connect(SIGNAL :accepted) { accept }
+     end
+     def setWinner (winner)
+       @contents.label_winner.text = "Winner robot: " + winner
+     end
+     def setStats(data)
+       @contents.label_stats.text = data
+     end
+  end
+  
   class GameConfigGui < Qt::Dialog 
     def initialize
       super 

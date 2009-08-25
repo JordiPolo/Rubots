@@ -121,12 +121,13 @@ module RRMi
 =end
   #TODO: this is a global position?
     def getPosition
-      $connection.simulation.GetPose2d("pioneer2dx_model1")
+      #TODO: get the name of the robot
+      $connection.simulation.GetPose2d("robot1")
     end
 
     def setPosition (*args)
       pos = Command2D.new *args
-      @iface_sim.set_pose2d("pioneer2dx_model1", pos.x, pos.y, pos.yaw)
+      @iface_sim.set_pose2d("robot1", pos.x, pos.y, pos.yaw)
     end
 
    private

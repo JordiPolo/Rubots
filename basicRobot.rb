@@ -30,7 +30,7 @@ class TestRobot < Rubots::Robot
 
  def initialize (index)
    super index
-   name = "Test Robot"
+   self.name = "Test Robot"
  end
 
 #events
@@ -40,13 +40,10 @@ class TestRobot < Rubots::Robot
     end
 
     def run
-      p name
-      p forwardSpeed
       stop
       
       puts "testrobot running"
       initial_position = worldPosition
-      p "speed at 100 should be"
     #  setSpeed 0, 10
       gun.turn 180 * Math::PI / 180.0
       p gun.angle

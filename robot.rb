@@ -50,7 +50,8 @@ module Rubots
   class Robot
     extend Forwardable
     attr_reader :gun, :radar, :energy
-    attr_reader :realName, :name, :fiducialId
+    attr_reader :realName, :fiducialId
+    attr_accessor :name
     #attr_reader :forwardSpeed, :turningSpeed
     #delegate_readers(:name, :fiducialId).to(:@_model)
     #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
@@ -174,9 +175,9 @@ module Rubots
     end
     
     def test
-      ein = 4
-      nose = $connection.simulation.GetProperty(name, "fiducial_id", ein, 5)
-      p nose
+      #ein = 4
+      #nose = $connection.simulation.GetProperty(name, "fiducial_id", ein, 5)
+      #p nose
     end
     # movement
 =begin
