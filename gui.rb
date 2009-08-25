@@ -107,7 +107,7 @@ module Rubots
 
       quit = Qt::PushButton.new('Quit')
       quit.setFont(Qt::Font.new('Times', 18, Qt::Font::Bold))
-      quit.connect(SIGNAL :clicked) { @game.finish }
+      quit.connect(SIGNAL :clicked) { quit }
       
       if Config.needed?
         @run.enabled = false
@@ -124,16 +124,6 @@ module Rubots
     end
     
     
-    def run_visual
-      @game.init false
-      @game.mainLoop
-    end
-    
-    def run_batch
-      @game.init true
-      @game.mainLoop
-    end
-    
     def configure
       GameConfigGui.new.show
       if Config.needed?
@@ -144,6 +134,20 @@ module Rubots
         @watch.enabled = true
       end
     end
+    
+    def run_visual
+      @game.start false
+    end
+    
+    def run_batch
+      @game.start true
+    end
+    
+    def quit
+      @game.finish
+      Qt::Application.instance.quit
+    end
+    
 
   end
 

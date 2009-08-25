@@ -20,13 +20,13 @@
 require 'rubygems'
 require 'ruby-debug'
 
-require 'yaml'
+
 require 'Qt'
 
 require 'connection' 
 require 'underlyingSoftware' 
 require 'robot' 
-
+require 'config' 
 
 
 
@@ -39,35 +39,7 @@ module Rubots
     end
   end
  
-  class Config
-    
-    def self.needed?
-      not File.exists? "session.yml"
-    end
-    
-    def self.load
-      Config.loadFile "session.yml"
-    end
-    def self.save (data)
-      self.saveConfig data, "session.yml"
-    end
-    
-    def self.loadFile (file)
-      if not File.exists? file
-        raise "The game configuration file #{file} can not be found" 
-      end
-      YAML::load(File.open(file))
-    end
-    
-    def self.saveConfig (data, file)
-      File.open(file, 'w') do |out|
-        YAML.dump(data, out)
-      end
-    end
-  end
  
-  
-  
   
   class Game < Qt::Object
     
@@ -79,7 +51,7 @@ module Rubots
      $connection = RRMi::Connection.new
    end
 
-   def init (batch_mode)
+   def start (batch_mode)
     
      session = Config.load 
     
@@ -97,6 +69,7 @@ module Rubots
   #TODO: rules
      loadRobots(session) 
      
+     mainLoop
   end
 
   def mainLoop
@@ -114,21 +87,24 @@ module Rubots
       end
     end
 
-    puts "running main loop"
     @updateTimer = Qt::Timer.new( self )
     connect( @updateTimer, SIGNAL('timeout()'), self, SLOT('update()') )
     @updateTimer.start(100)
   end
 
-  #if we are running the update method will be called and eventually cleanup
-  #if we are  not running we cleanup ourselves
-  def finish
-    if @running
-      @running = false
-    else
-      cleanup
-    end
-  end  
+  slots :update
+  def update
+      $connection.update 
+      @robots.each { |r|  r._run } 
+      @running = @running and @software.running? 
+      if !@running
+        @updateTimer.stop
+        @threads.each { |aThread|  aThread.kill; aThread.join }
+        @robots.each { |r|  r.onGameFinish }   # let the robots to finish themselves
+        cleanup 
+      end
+  end 
+
 
   def robot_by_fiducial (fiducial)
     @robots.each {|r| puts r.fiducialId}
@@ -159,20 +135,9 @@ module Rubots
       end
       gui.setStats ( data_header + data)
       gui.show
+      
   end
   
-  slots :update
-  def update
-      $connection.update 
-      @robots.each { |r|  r._run } 
-      @running = @running and @software.running? 
-      if !@running
-        @updateTimer.stop
-        @threads.each { |aThread|  aThread.kill; aThread.join }
-        @robots.each { |r|  r.onGameFinish }   # let the robots to finish themselves
-        cleanup 
-      end
-  end 
 
       
   def loadRobots(session)
@@ -208,16 +173,24 @@ module Rubots
   end 
 
   
+  def finish
+    if @running
+      @running = false
+    else
+      cleanup
+    end
+  end  
+
+  #if we are running the update method will be called and eventually cleanup
+  #if we are  not running we cleanup ourselves
   def cleanup
     @robots.each do  |r| 
       r._cleanup  #game internal cleanup of robots
     end
     if not @software.nil?
       @software.cleanup
-    end
-    Qt::Application.instance.quit
+    end  
   end
- 
 
  end
 
