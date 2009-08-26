@@ -66,7 +66,10 @@ module Rubots
      @software.startPlayer( stadium_file_prefix + stadium['player_config'] )
      
      Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
-  #TODO: rules
+  
+    # if session['rules'] == 'arcade'
+    #   Rules
+     
      loadRobots(session) 
      
      mainLoop
@@ -122,6 +125,7 @@ module Rubots
       gui = GameOverGui.new
       gui.setWinner @robots[0].name
       data_header = "name          energy    bullets\n" #15 characters for the name 
+      data_header += "--------------------------------\n"
       data = ""
       @all_robots.each do |r|
         name = r.name.slice(0..14)
@@ -133,9 +137,9 @@ module Rubots
         data += "\n"
         puts "roboooooot" 
       end
-      gui.setStats ( data_header + data)
+      gui.setStats( data_header + data )
       gui.show
-      
+      finish
   end
   
 

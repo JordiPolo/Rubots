@@ -38,7 +38,7 @@ module RRMi
     
     def turn (degrees)
       @pan = degrees
-      @iface.SetCam( degrees, degrees, 0 )  
+      @iface.SetCam( @pan, 0, 0 )  
     end
     
     def angle 
@@ -53,7 +53,7 @@ module RRMi
   #TODO: x, y  and distance are redundant, choose!
   #type, info are placeholders for the upper layer
   class ScannedObject
-    attr_accessor :id, :x, :y, :distance, :bearing, :type, :info
+    attr_accessor :id, :x, :y, :dsetRelativePositionistance, :bearing, :type, :info
   end
 
 
@@ -90,60 +90,107 @@ module RRMi
     attr_reader :current_velocity
     def initialize (index)
       puts "index " + index.to_s
-      @current_velocity = { :x => 0, :y => 0, :yaw => 0}
-      @default_vel = { :x =>10, :y => 10, :yaw =>1 } #random numbers, just to make it move if the user provide no defaults
-         
       @iface = Playercpp::Position2dProxy.new($connection.player, index)
-      
+      @ifaceGoto = Playercpp::Position2dProxy.new($connection.player, index+1)
+      @controlType = :vel      
+
+      @current_velocity = { :x => 0, :y => 0, :yaw => 0}
+      @default_vel = { :x =>1, :y => 1, :yaw =>1 } #random numbers, just to make it move if the user provide no defaults
+      @current_pos = @current_velocity
     end
-
-
-    # velocity we will use when commanding positions
+    
+    #properties
+    def setObjectName (name)
+      @realName = name
+    end
+    # velocity that will be used when commanding positions TODO
     def setDefaultVelocity ( vel )
       @default_vel = vel
     end
 
     def setVelocity ( vel )
-      setVel vel
+      @controlType = :vel
+      @current_velocity.merge! vel 
+      puts "new velocity ", @current_velocity
+      @iface.SetSpeed(@current_velocity[:x], @current_velocity[:y], toRad( @current_velocity[:yaw] ))
     end
     
-    def stop
-      setVel  :x => 0, :y => 0, :yaw => 0
+    def stop #stop slowly
+      return if @controlType == :vel
+      stopped = false
+      min_vel = 0.04
+      while !stopped do  
+        stopped = true
+        @current_velocity.each { |k, v| @current_velocity[k] = v - (0.001 )  }
+        setVelocity  @current_velocity
+        @current_velocity.each_value do |v| 
+          if v > min_vel  
+            stopped = false
+          end
+        end
+        sleep 0.01
+      end
+      setVel :x => 0, :y => 0, :yaw => 0
     end
-=begin
-    def setRelativePosition ( *args )
-      pos = Command2D.new *args
-      current_pos = getPosition
-      new_pos = current_pos + pos
-      puts "moving to new pos", new_pos
-      @iface.set_cmd_pose(new_pos.x,new_pos.y,new_pos.yaw, 1)
-    end
-=end
-  #TODO: this is a global position?
-    def getPosition
-      #TODO: get the name of the robot
-      $connection.simulation.GetPose2d("robot1")
+    
+
+    def setRelativePosition ( position )
+      puts position
+      position = {:x => 0, :y => 0, :yaw => @current_pos[:yaw]}.merge position
+      position[:x] = position[:x] * Math.sin( toRad(position[:yaw] ))
+      position[:y] = position[:x] * Math.cos( toRad(position[:yaw] ))
+      
+      current_pos = getAbsolutePosition
+      new_pos = {}
+      raise "incorrect positions" if current_pos.nil? or position.nil?
+      p "current, position", @current_pos, current_pos, position
+      [:x, :y].each do |s|
+        new_pos[s] = current_pos[s] + position[s]
+      end
+      new_pos[:yaw] = position[:yaw] #this is not relative to global
+      raise "not working " if new_pos.empty?
+      setAbsolutePosition new_pos
+      
+      
     end
 
-    def setPosition (*args)
-      pos = Command2D.new *args
-      @iface_sim.set_pose2d("robot1", pos.x, pos.y, pos.yaw)
+  #TODO: this is a global position?
+    def getAbsolutePosition 
+      pos = $connection.simulation.GetPose2d @realName
+      position = {:x => pos[0] , :y => pos[1], :yaw => toDegrees( pos[2] ) }
+    end
+
+    def setAbsolutePosition ( pos )
+      @controlType = :pos
+      puts "moving to new pos", pos
+      position = pose_tFromHash pos
+      @current_velocity = { :x => 0, :y => 0, :yaw => 0}
+      vel = pose_tFromHash @current_velocity
+      @ifaceGoto.GoTo( position, vel )
+      @current_pos = pos
     end
 
    private
-
+   
 
     def setVel (vel)  
-      @current_velocity.merge! vel 
-      puts "new velocity ", @current_velocity
-      
-      # TODO: rad or degrees
-      @iface.SetSpeed(@current_velocity[:x], @current_velocity[:y], @current_velocity[:yaw])
+    end
+    
+    def pose_tFromHash(hash)
+      pose = Playercpp::Player_pose2d_t.new
+      pose.px = hash[:x]
+      pose.py = hash[:y]
+      pose.pa = toRad hash[:yaw]
+      return pose
     end
     
     def toRad (degrees)
-      rad = degrees * Math::PI / 180.0
-      rad
+      degrees * Math::PI / 180.0
     end
+    
+    def toDegrees (rad)
+      rad * 180.0 / Math::PI 
+    end
+    
   end
 end

@@ -42,26 +42,48 @@ class TestRobot < Rubots::Robot
     def run
       stop
       
-      puts "testrobot running"
+      
       initial_position = worldPosition
-    #  setSpeed 0, 10
-      gun.turn 180 * Math::PI / 180.0
-      p gun.angle
-      sleep 6
-      gun.shoot 80
+      puts "testrobot running"
+      sleep 2
+      #setSpeed 100, 0
+      p "turn"
+      #forward 2
+      turn 30
+      sleep 5
+      #setSpeed 80, 0
+      #turn 0
+      forward (3) 
+      p "turn2"
+     # turn 30
+      sleep 20
+      p "forward"
+      forward 2
+
+      sleep 10
+      stop
+      sleep 4 
+      setSpeed 1,0
+      sleep  5
+      stop
+     # gun.turn 180 * Math::PI / 180.0
+#       p gun.angle
+#       
+#       sleep 6
+#       gun.shoot 80
       
       sleep 15
-      position2 = worldPosition
-      p "pos1 ", initial_position
-      p "pos2", position2
-      if (initial_position == position2)
-        raise "we are not moving"
-      end
-      
+#       position2 = worldPosition
+#       p "pos1 ", initial_position
+#       p "pos2", position2
+#       if (initial_position == position2)
+#         raise "we are not moving"
+#       end
+puts "stopping"      
       stop 
       sleep 10
       puts "moving backwards"
-      setSpeed -10,0
+      setSpeed 0,0
 #      forward -10 
       sleep 20
       position = worldPosition

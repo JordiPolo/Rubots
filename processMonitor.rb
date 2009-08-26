@@ -69,7 +69,7 @@ module RRMi
         raise "Gazebo or player couldn't be initialized" if line.include? error_at
       end
       puts line
-   #   debug_output pipe
+      debug_output pipe
     end
     
     def debug_output (pipe)

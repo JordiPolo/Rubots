@@ -107,7 +107,7 @@ module Rubots
 
       quit = Qt::PushButton.new('Quit')
       quit.setFont(Qt::Font.new('Times', 18, Qt::Font::Bold))
-      quit.connect(SIGNAL :clicked) { quit }
+      quit.connect(SIGNAL :clicked) { quit_app }
       
       if Config.needed?
         @run.enabled = false
@@ -143,7 +143,7 @@ module Rubots
       @game.start true
     end
     
-    def quit
+    def quit_app
       @game.finish
       Qt::Application.instance.quit
     end

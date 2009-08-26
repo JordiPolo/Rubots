@@ -63,13 +63,13 @@ module Rubots
       @energy = Rules::LIFE
       my_index = robot_index + 1
       @realName = "robot" + my_index.to_s
-      @base_index = my_index * 10
+      baseIndex = my_index * 10
       @fiducialId = my_index
-      @_ifacePosition = RRMi::PositionIface.new @base_index 
+      @_ifacePosition = RRMi::PositionIface.new baseIndex 
       @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
-
-      @gun = Gun.new @base_index
-      @radar = Radar.new @base_index
+      @_ifacePosition.setObjectName @realName
+      @gun = Gun.new baseIndex
+      @radar = Radar.new baseIndex
       @radar.add_observer self  #interested in radar events      
     end
 
@@ -166,6 +166,7 @@ module Rubots
     def forwardSpeed 
       @_ifacePosition.current_velocity[:x]
     end
+    
     def turningSpeed 
       @_ifacePosition.current_velocity[:yaw]
     end
@@ -180,15 +181,17 @@ module Rubots
       #p nose
     end
     # movement
-=begin
+
     def forward (meters)
-      @_ifacePosition.setRelativePosition( meters, 0, 0 )
+      @_ifacePosition.setRelativePosition :x => meters
     end
+       
 
     def turn (degrees)
-      @_ifacePosition.setRelativePosition( 0, 0, degrees )
+      @_ifacePosition.setRelativePosition :yaw => degrees
     end
- 
+    
+=begin 
     #absolute position
     def turnTo (degrees)
       pos = @_ifacePosition.getPosition 
@@ -197,7 +200,7 @@ module Rubots
 
 =end
     def worldPosition
-      @_ifacePosition.getPosition 
+      @_ifacePosition.getAbsolutePosition 
     end 
 
    private
