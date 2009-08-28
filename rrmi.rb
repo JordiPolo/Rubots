@@ -24,10 +24,33 @@ require 'forwardable'
 
 require 'connection'
 
+class Float
+    def to_rad 
+      self * Math::PI / 180.0
+    end
+    
+    def to_degrees
+      self * 180.0 / Math::PI 
+    end  
+end
+
+class Hash
+    def to_pose_t
+      pose = Playercpp::Player_pose2d_t.new
+      pose.px = self[:x]
+      pose.py = self[:y]
+      pose.pa = toRad self[:yaw]
+      return pose
+    end  
+end
+
+
 
 #Ruby Robotics Middleware 
 module RRMi
-
+  
+    
+  
   class CannonIface
     def initialize (index)
       @iface = Playercpp::PtzProxy.new($connection.player, index)
@@ -53,10 +76,9 @@ module RRMi
   #TODO: x, y  and distance are redundant, choose!
   #type, info are placeholders for the upper layer
   class ScannedObject
-    attr_accessor :id, :x, :y, :dsetRelativePositionistance, :bearing, :type, :info
+    attr_accessor :id, :x, :y, :distance, :bearing, :type, :info
   end
-
-
+  
   class FiducialIface
     def initialize (index)
       puts "fidu index " + index.to_s
@@ -76,7 +98,7 @@ module RRMi
          object.id = f.id  
          object.x = f.pose.px
          object.y = f.pose.py
-#         object.distance = 
+         object.distance = Math.sqrt( object.x **2 + object.y **2 )
          object.bearing = f.pose.pyaw
          yield object
       end
@@ -135,7 +157,7 @@ module RRMi
     
 
     def setRelativePosition ( position )
-      puts position
+      puts "relative positon: ", position
       position = {:x => 0, :y => 0, :yaw => @current_pos[:yaw]}.merge position
       position[:x] = position[:x] * Math.sin( toRad(position[:yaw] ))
       position[:y] = position[:x] * Math.cos( toRad(position[:yaw] ))
@@ -176,21 +198,6 @@ module RRMi
     def setVel (vel)  
     end
     
-    def pose_tFromHash(hash)
-      pose = Playercpp::Player_pose2d_t.new
-      pose.px = hash[:x]
-      pose.py = hash[:y]
-      pose.pa = toRad hash[:yaw]
-      return pose
-    end
-    
-    def toRad (degrees)
-      degrees * Math::PI / 180.0
-    end
-    
-    def toDegrees (rad)
-      rad * 180.0 / Math::PI 
-    end
     
   end
 end

@@ -44,7 +44,7 @@ module Rubots
     #guns
     HIT_DAMAGE = 1 # damage if the robot hit something (or is hit)
     BULLETS = 100  # amount of bullets per robot
-    BULLET_DAMAGE = 10 # damage caused by bullet hitting robot
+    BULLET_DAMAGE = 50 # damage caused by bullet hitting robot
     MAX_GUN_TURN_RATE = 4
   end
 end

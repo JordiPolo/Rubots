@@ -1,3 +1,4 @@
+#!/usr/bin/ruby -w
 =begin
   Rubots
      Copyright(c) 2009  Jordi Polo

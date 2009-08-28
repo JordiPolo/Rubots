@@ -16,12 +16,6 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  printf("stepTime wd angleRateL R [%f %f %f %f]\n", stepTime, wd, joints[LEFT]->GetAngleRate(), joints[RIGHT]->GetAngleRate());
-  printf("d1 d2 dr da [%f %f %f %f]\n",d1, d2, dr, da);
-  printf("pos 0 1 2 vel 0 1 2  [%f %f %f %f %f %f]\n", odomPose[0], odomPose[1], odomPose[2], odomVel[0], odomVel[1], odomVel[2]);
-
-
-
 =end
 
 require 'robot'
@@ -36,27 +30,34 @@ class TestRobot < Rubots::Robot
 #events
     def onStart
       puts "testrobot about to start"
-  #    speed= , 1
     end
 
     def run
+            initial_position = worldPosition
+      puts "position robot1" , initial_position
+            sleep 1
+            setSpeed (0, -100)
+=begin
       stop
-      
-      
       initial_position = worldPosition
+      puts "initial positon", initial_position
       puts "testrobot running"
-      sleep 2
+      puts 
+      puts
+      sleep 1
       #setSpeed 100, 0
       p "turn"
       #forward 2
-      turn 30
+      turn 135
       sleep 5
+      p "forward"
       #setSpeed 80, 0
       #turn 0
       forward (3) 
-      p "turn2"
+      
      # turn 30
       sleep 20
+      p "turn2"
       p "forward"
       forward 2
 
@@ -96,9 +97,17 @@ puts "stopping"
       if initial_position != position
         raise "simulation failure"
       end 
+=end
     end
 
-    def onGameFinished
+    def onScannedRobot (info)
+#      puts "WWAAAAAAAAAATA"
+#      puts info.id, info.x , info.y, info.bearing
+      gun.turn info.bearing
+      if (info.bearing - gun.angle < 5)
+        puts "shooting"
+        gun.shoot 1
+      end
     end
 
 

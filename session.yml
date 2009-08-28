@@ -1,6 +1,6 @@
 --- 
 robots: 
-- basicRobot.rb
-- basicRobot2.rb
-rules: arcade
-stadium: /home/jordi/source/rubots/stadiums/simple.stadium
+- /home/jordi/source/rubots/randombot.rb
+- /home/jordi/source/rubots/donothingbot.rb
+rules: strict
+stadium: /home/jordi/source/rubots/stadiums/bearing.stadium

@@ -42,60 +42,8 @@ module Rubots
       return result
     end
   end
-
-
-
-
-
-  class Robot
-    extend Forwardable
-    attr_reader :gun, :radar, :energy
-    attr_reader :realName, :fiducialId
-    attr_accessor :name
-    #attr_reader :forwardSpeed, :turningSpeed
-    #delegate_readers(:name, :fiducialId).to(:@_model)
-    #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
-    
-    def initialize (robot_index)
-      @forwardSpeed = 0
-      @turningSpeed = 0
-      @name = "No name"
-      @energy = Rules::LIFE
-      my_index = robot_index + 1
-      @realName = "robot" + my_index.to_s
-      baseIndex = my_index * 10
-      @fiducialId = my_index
-      @_ifacePosition = RRMi::PositionIface.new baseIndex 
-      @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
-      @_ifacePosition.setObjectName @realName
-      @gun = Gun.new baseIndex
-      @radar = Radar.new baseIndex
-      @radar.add_observer self  #interested in radar events      
-    end
-
-
-    #periodic instructions from the engine come here
-    def _run
-      @radar.scan()
-    end
-#TODO: empty method
-    def _cleanup 
-      @radar._cleanup
-      @gun._cleanup
-    end 
-    
-    def _hit (bullets)
-      @energy -= bullets * Rules::BULLET_DAMAGE
-      if @energy <= 0 
-        $engine.kill_robot self
-        stop
-        onDeath
-      end
-      onHitByBullet
-    end
-    ###################################
-    # Events to be implemented by robots
-    ###################################
+  
+  module RobotEvents
     def onGameStart
     end
 
@@ -125,16 +73,67 @@ module Rubots
     end
     #when anything else is scanned
     def onScannedRobot (robot)
-      puts "robot found"
-      puts "robot found"
-      puts "robot found"
-      puts "robot found"
+    end
+  end
+
+
+
+  class Robot
+    extend Forwardable
+    
+    attr_reader :gun, :radar, :energy
+    attr_reader :realName, :fiducialId
+    attr_accessor :name
+    #attr_reader :forwardSpeed, :turningSpeed
+    #delegate_readers(:name, :fiducialId).to(:@_model)
+    #delegate_reader(:current_velocity).as(:forwardSpeed).to(:@_ifacePosition)
+    
+    def initialize (robot_index)
+      @forwardSpeed = 0
+      @turningSpeed = 0
+      @name = "No name"
+      @energy = Rules::LIFE
+      my_index = robot_index + 1
+      @realName = "robot" + my_index.to_s
+      baseIndex = my_index * 10
+      @fiducialId = my_index
+      @_ifacePosition = RRMi::PositionIface.new baseIndex 
+      @_ifacePosition.setDefaultVelocity :x => Rules::MAX_VELOCITY, :y => Rules::MAX_VELOCITY, :yaw => Rules::MAX_TURN_RATE
+      @_ifacePosition.setObjectName @realName
+      @gun = Gun.new baseIndex
+      @radar = Radar.new baseIndex
+      @radar.add_observer self  #interested in radar events      
     end
 
+    #periodic instructions from the engine come here
+    def _run       
+      @radar.scan()
+    end
+#TODO: empty method
+    def _cleanup 
+      @radar._cleanup
+      @gun._cleanup
+    end 
+    
+    def _hit (bullets)
+      @energy -= bullets * Rules::BULLET_DAMAGE
+      if @energy <= 0 
+        $engine.kill_robot self
+        stop
+        onDeath
+      end
+      onHitByBullet
+    end
+    
+    ###################################
+    # Events to be implemented by robots
+    ###################################
+    include RobotEvents
     #translate observed events to method name and execute them
     def update (event, object)
       method_name = "on" + event
-      eval (method_name + " object")        
+      method_name += " object"
+      eval method_name
     end
 
     ##############################
@@ -175,12 +174,15 @@ module Rubots
       @_ifacePosition.stop
     end
     
+    
+    
     def test
       #ein = 4
       #nose = $connection.simulation.GetProperty(name, "fiducial_id", ein, 5)
       #p nose
     end
-    # movement
+    
+    # position control
 
     def forward (meters)
       @_ifacePosition.setRelativePosition :x => meters
@@ -190,7 +192,9 @@ module Rubots
     def turn (degrees)
       @_ifacePosition.setRelativePosition :yaw => degrees
     end
-    
+    def absolute (pos)
+      @_ifacePosition.setAbsolutePosition pos
+    end
 =begin 
     #absolute position
     def turnTo (degrees)

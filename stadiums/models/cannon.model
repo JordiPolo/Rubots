@@ -82,7 +82,7 @@
       <maxAngle>1</maxAngle>
 
       <minRange>0.2</minRange>
-      <maxRange>10</maxRange>
+      <maxRange>5</maxRange>
       <resRange>.2</resRange>
       <controller:sicklms200_laser name="cannon_laser_controller">
         <interface:laser name="cannon_laser"/>
