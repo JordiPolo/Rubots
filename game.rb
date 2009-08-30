@@ -49,6 +49,7 @@ module Rubots
      @threads = []
      @running = false
      $connection = RRMi::Connection.new
+     @software = RRMi::UnderlyingSoftware.new
    end
 
    def start (batch_mode)
@@ -61,7 +62,6 @@ module Rubots
      
      stadium = Config.loadFile stadium_file
           
-     @software = RRMi::UnderlyingSoftware.new
      @software.startGazebo( stadium_file_prefix + stadium['gazebo_config'], batch_mode )
      @software.startPlayer( stadium_file_prefix + stadium['player_config'] )
      
@@ -191,9 +191,7 @@ module Rubots
     @robots.each do  |r| 
       r._cleanup  #game internal cleanup of robots
     end
-    if not @software.nil?
-      @software.cleanup
-    end  
+    @software.cleanup
   end
 
  end
