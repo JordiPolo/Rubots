@@ -45,6 +45,7 @@ module Rubots
   
   module RobotEvents
     def onGameStart
+	    
     end
 
     def run

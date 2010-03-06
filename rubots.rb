@@ -24,7 +24,7 @@ require 'gui'
     about = KDE::AboutData.new("Rubots", "Rubots", KDE.ki18n(""), "0.1")
     KDE::CmdLineArgs.init(ARGV, about)
     a = KDE::Application.new()
-    main = Rubots::GameControlWidget.new
+    main = Rubots::GameControlPanel.new
     main.show
     a.exec
   end

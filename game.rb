@@ -50,6 +50,7 @@ module Rubots
      @running = false
      $connection = RRMi::Connection.new
      @software = RRMi::UnderlyingSoftware.new
+     Thread.abort_on_exception = true
    end
 
    def start (batch_mode)
@@ -71,22 +72,17 @@ module Rubots
     #   Rules
      
      loadRobots(session) 
+
      
-     mainLoop
-  end
+     @robots.each do  |r| 
+       r.onGameStart  #run outside the thread so we wait to every robot's start
+     end
 
-  def mainLoop
-    Thread.abort_on_exception = true
-    @robots.each do  |r| 
-      r.onGameStart  #run outside the thread so we wait to every robot's start
-    end
-
-    @running = true
+     @running = true
 
     @robots.each do |r|
       @threads << Thread.new do 
-        r.run # robots can enter in busy loop here or setup and become event driven
-        
+        r.run # robots can enter in busy loop here or setup and become event driven   
       end
     end
 
@@ -94,6 +90,7 @@ module Rubots
     connect( @updateTimer, SIGNAL('timeout()'), self, SLOT('update()') )
     @updateTimer.start(100)
   end
+  
 
   slots :update
   def update

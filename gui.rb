@@ -21,7 +21,7 @@
   require 'Qt'
   require 'korundum4'
   
-  require 'gameconfigui' #generated from ui: rbuic4 configgui.ui -o configgui.rb
+  require 'gameconfiggui' #generated from ui: rbuic4 configgui.ui -o configgui.rb
   require 'gameoverui'
   
   require 'game'
@@ -86,7 +86,7 @@ module Rubots
 
   
  
-   class GameControlWidget < Qt::Widget
+   class GameControlPanel < Qt::Widget
 
     def initialize
       super

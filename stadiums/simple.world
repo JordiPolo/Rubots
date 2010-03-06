@@ -19,51 +19,39 @@
    <!-- ****************************** -->
    <!--  Simulator configuration       -->
    <!-- ****************************** -->
-
-  <physics:ode>
-    <stepTime>0.03</stepTime>
+ <physics:ode>
+    <stepTime>0.001</stepTime>
     <gravity>0 0 -9.8</gravity>
-    <cfm>10e-5</cfm>
-    <erp>0.3</erp>
+    <cfm>10e-2</cfm>
+    <erp>0.2</erp>
+
     <!-- updateRate: <0 == throttle simTime to match realTime.
                       0 == No throttling
                      >0 == Frequency at which to throttle the sim --> 
-    <updateRate>-1</updateRate>
+    <updateRate>0</updateRate>
   </physics:ode>
+
 
   <rendering:gui>
     <type>fltk</type>
     <size>800 600</size>
     <pos>0 0</pos>
-    <xyz>0 0 0</xyz>
-    <rpy>0 0 0</rpy>
   </rendering:gui>
 
+
   <rendering:ogre>
-    <ambient>0.2 0.2 0.2 0.2</ambient>
-    <sky>
-      <material>Gazebo/CloudySky</material>
-    </sky>
-
-    <fog>
-      <color>1.0 1.0 1.0</color>
-      <linearStart>10</linearStart>
-      <linearEnd>100</linearEnd>
-    </fog>
-
+    <ambient>1 1 1 1</ambient>
+    <shadowTechnique>stencilAdditive</shadowTechnique>
     <grid>false</grid>
-
-    <shadowTechnique>stencilModulative</shadowTechnique>
   </rendering:ogre>
 
-   
 
 
    <!-- ****************************** -->
    <!--         Robots       -->
    <!-- Robots must be always named robot+fiducialID -> robot1, robot2, etc -->
    <!-- ****************************** -->
-
+<!--
   <model:physical name="robot1">
     <xyz>-2.8 -1.8 .145</xyz>
     <rpy>0.0 0.0 130.0</rpy>
@@ -106,7 +94,8 @@
 
   </model:physical>
 
-
+-->
+<!--
 
 
   <model:physical name="robot2">
@@ -151,12 +140,12 @@
     </include>
   </model:physical>
 
-
+-->
 
    <!-- ****************************** -->
    <!--          Objects       -->
    <!-- ****************************** -->
-
+<!--
   <model:physical name="sphere1_model">
     <xyz>6.15 -7.68 .2</xyz>
     <rpy>0.0 0.0 0.0</rpy>
@@ -382,6 +371,7 @@
     </body:box>
   </model:physical>
 
+-->
    <!-- ****************************** -->
    <!--  Stadium       -->
    <!-- ****************************** -->
@@ -403,38 +393,7 @@
   </model:physical>
 
 
-  <!-- Directional  light -->
-  <model:renderable name="directional_white">
-    <enableGravity>false</enableGravity>
-
-    <light>
-      <type>directional</type>
-      <direction>0 0 -1</direction>
-      <diffuseColor>0.4 0.4 0.4</diffuseColor>
-      <specularColor>0.1 0.1 0.1</specularColor>
-      <range>400</range>
-
-      <!-- Constant(0-1) Linear(0-1) Quadratic -->
-      <attenuation>0 0 0</attenuation>
-    </light>
-  </model:renderable>
-
-
-  <!-- White Point light -->
-  <model:renderable name="point_white">
-    <xyz>0 3 5</xyz>
-    <enableGravity>false</enableGravity>
-
-    <light>
-      <type>point</type>
-      <diffuseColor>0.8 0.8 0.8</diffuseColor>
-      <specularColor>0.1 0.1 0.1</specularColor>
-      <range>20</range>
-
-      <!-- Constant(0-1) Linear(0-1) Quadratic -->
-      <attenuation>0.3 0.01 0</attenuation>
-    </light>
-  </model:renderable>
+ 
 
 
 

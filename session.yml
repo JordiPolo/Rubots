@@ -1,6 +1,6 @@
 --- 
 robots: 
-- /home/jordi/source/rubots/bots/randombot.rb
-- /home/jordi/source/rubots/bots/donothingbot.rb
+- /home/jordi/sources/rubots/bots/randombot.rb
+- /home/jordi/sources/rubots/bots/donothingbot.rb
 rules: arcade
-stadium: /home/jordi/source/rubots/stadiums/bearing.stadium
+stadium: /home/jordi/sources/rubots/stadiums/simple.stadium
