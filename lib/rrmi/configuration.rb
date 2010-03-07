@@ -1,6 +1,6 @@
 =begin
-  Rubots
-     Copyright(c) 2009  Jordi Polo
+  RRMI
+     Copyright(c) 2010  Jordi Polo
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,26 +17,26 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
-require 'configuration'
+require 'yaml'
 
-module Rubots
-# class with 
-  class Config
-  
-    def self.file
-      "session.yml"
+
+module RRMi
+
+  #the configuration file of RRMi
+  class Configuration    
+    def self.load (file)
+      if not File.exists? file
+        raise "The game configuration file #{file} can not be found" 
+      end
+      YAML::load(File.open(file))
     end
     
-    def self.needed?
-      not File.exists? Config.file
-    end
-    
-    def self.load
-      RRMi::Configuration.load Config.file
-    end
-    def self.save (data)
-      RRMi::Configuration.save data, Config.file
+    def self.save (data, file)
+      File.open(file, 'w') do |out|
+        YAML.dump(data, out)
+      end
     end
   end
   
-end  
+end
+ 

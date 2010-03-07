@@ -24,7 +24,6 @@ require 'ruby-debug'
 require 'Qt'
 
 require 'connection' 
-require 'underlyingSoftware' 
 require 'robot' 
 require 'config' 
 
@@ -48,26 +47,18 @@ module Rubots
      @robots = []
      @threads = []
      @running = false
-     $connection = RRMi::Connection.new
-     @software = RRMi::UnderlyingSoftware.new
+     @connection = RRMi::Connection.new
      Thread.abort_on_exception = true
    end
 
    def start (batch_mode)
     
-     session = Config.load 
+     session = Config.load
     
      #load stadium
      stadium_file = session['stadium']
-     stadium_file_prefix = File.dirname( stadium_file ) + '/'
+     @connection.start( stadium_file, :batch_mode => batch_mode )
      
-     stadium = Config.loadFile stadium_file
-          
-     @software.startGazebo( stadium_file_prefix + stadium['gazebo_config'], batch_mode )
-     @software.startPlayer( stadium_file_prefix + stadium['player_config'] )
-     
-     Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; cleanup })
-  
     # if session['rules'] == 'arcade'
     #   Rules
      
@@ -96,7 +87,7 @@ module Rubots
   def update
       $connection.update 
       @robots.each { |r|  r._run } 
-      @running = @running and @software.running? 
+      @running = @running and @connection.running? 
       if !@running
         @updateTimer.stop
         @threads.each { |aThread|  aThread.kill; aThread.join }
@@ -188,7 +179,7 @@ module Rubots
     @robots.each do  |r| 
       r._cleanup  #game internal cleanup of robots
     end
-    @software.cleanup
+    @connection.finish
   end
 
  end

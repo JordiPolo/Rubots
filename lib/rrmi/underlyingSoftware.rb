@@ -97,7 +97,8 @@ module RRMi
         cleanup
         raise "we were not able to launch Player"
       end
-        
+      
+      return Playercpp::PlayerClient.new('localhost')
     end 
     
 

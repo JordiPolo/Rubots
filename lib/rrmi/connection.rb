@@ -18,7 +18,8 @@
 =end
 
 require 'playercpp'
-
+require 'configuration'
+require 'underlyingSoftware' 
 
 
 #Ruby Robotics Middleware 
@@ -26,13 +27,31 @@ module RRMi
 
   class Connection
     attr_reader :player, :simulator
+    
     def initialize
       @simIface = nil
+      @software = RRMi::UnderlyingSoftware.new
+      Thread.abort_on_exception = true
     end
     
-    def connect  
-      @player = Playercpp::PlayerClient.new('localhost')
+    def start (file, options)
+      file_prefix = File.dirname( file ) + '/'
+      configuration = Configuration.load file
+    
+      @software.startGazebo( file_prefix + configuration['gazebo_config'], options[:batch_mode] )
+      @player = @software.startPlayer( file_prefix + configuration['player_config'] )
+      Signal.trap(0, proc { puts "Terminating: #{$$}, killing underlying software"; finish })
+      
     end
+    
+    def finish
+      @software.cleanup
+    end
+        
+    def running? 
+      @software.running?
+    end
+
     
     def simulation
       if @simIface.nil?
@@ -46,7 +65,6 @@ module RRMi
         @player.Read
       end
     end
-
     
   end
   
