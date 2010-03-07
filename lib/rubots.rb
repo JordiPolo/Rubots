@@ -18,6 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 =end
 
+$:.push File.expand_path(File.dirname(__FILE__) + '/rubots')
+$:.push File.expand_path(File.dirname(__FILE__) + '/rrmi')
+
 require 'gui'
 
   if $0 == __FILE__
